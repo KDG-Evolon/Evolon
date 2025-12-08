@@ -1,0 +1,81 @@
+<!-- HTML5 文書であることを宣言 -->
+<!DOCTYPE html>
+<!-- ルート要素。日本語と Thymeleaf/Spring Security Dialect を宣言 -->
+<html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<!-- ヘッダー領域（メタ・タイトル・スタイル） -->
+
+<head>
+	<!-- 文字コードを UTF-8 に指定 -->
+	<meta charset="UTF-8">
+	<!-- ページタイトルを設定 -->
+	<title>管理者: 商品管理 - フリマアプリ</title>
+	<!-- 共通スタイルシートを読み込む -->
+	<link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<!-- 表示本体 -->
+
+<body>
+	<!-- レイアウト用コンテナ -->
+	<div class="container">
+		<!-- ページ見出し -->
+		<h1>管理者: 商品管理</h1>
+		<!-- 画面の説明文 -->
+		<p>システム内の全ての商品を管理します。</p>
+		<!-- 商品一覧テーブル -->
+		<table>
+			<!-- 列見出し -->
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>商品名</th>
+					<th>出品者</th>
+					<th>価格</th>
+					<th>カテゴリ</th>
+					<th>ステータス</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<!-- テーブル本体 -->
+			<tbody>
+				<!-- items をループして 1 行ずつ描画 -->
+				<tr th:each="item : ${items}">
+					<!-- 商品 ID を表示 -->
+					<td th:text="${item.id}"></td>
+					<!-- 商品名を表示 -->
+					<td th:text="${item.name}"></td>
+					<!-- 出品者名を表示 -->
+					<td th:text="${item.seller.name}"></td>
+					<!-- 価格をフォーマットして表示 -->
+					<td th:text="'¥' + ${#numbers.formatDecimal(item.price, 0, 'COMMA', 0,'POINT')}"></td>
+					<!-- カテゴリ名。null なら未分類と表示 -->
+					<td th:text="${item.category != null ? item.category.name : '未分類'}"></td>
+					<!-- 商品ステータスを表示 -->
+					<td th:text="${item.status}"></td>
+					<!-- 操作列（削除ボタン） -->
+					<td>
+						<!-- 管理者による削除 POST を送信。確認ダイアログで誤操作を防止 -->
+						<form th:action="@{/admin/items/{id}/delete(id=${item.id})}" method="post"
+							style="display:inline;">
+							<!-- 削除ボタン（赤系スタイル）。confirm で最終確認 -->
+							<button type="submit" class="button danger" onclick="return
+confirm('本当にこの商品を削除しますか？');">削除</button>
+						</form>
+					</td>
+				</tr>
+				<!-- items が空の場合の 1 行表示 -->
+				<tr th:if="${#lists.isEmpty(items)}">
+					<!-- 全列結合でメッセージを表示 -->
+					<td colspan="7">商品がありません。</td>
+				</tr>
+			</tbody>
+		</table>
+		<!-- 画面下部の戻るボタン群 -->
+		<div class="button-group">
+			<!-- 管理者ダッシュボードへの戻りリンク -->
+			<a th:href="@{/admin/dashboard}" class="button secondary">管理者ダッシュボードに戻
+				る</a>
+		</div>
+	</div>
+</body>
+
+</html>

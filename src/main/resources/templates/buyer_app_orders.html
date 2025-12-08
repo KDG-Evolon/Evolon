@@ -1,0 +1,67 @@
+<!-- HTML5 文書であることを宣言 -->
+<!DOCTYPE html>
+<!-- ルート要素。言語=日本語、Thymeleaf と Spring Security Dialect の xmlns を宣言 -->
+<html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<!-- ヘッダー領域（メタ・タイトル・スタイル） -->
+
+<head>
+	<!-- 文字コードを UTF-8 に設定 -->
+	<meta charset="UTF-8">
+	<!-- ブラウザタブに表示されるタイトル -->
+	<title>購入履歴 - フリマアプリ</title>
+	<!-- 共通スタイルシートを読み込み -->
+	<link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<!-- 画面本体 -->
+
+<body>
+	<!-- レイアウト用の中央コンテナ -->
+	<div class="container">
+		<!-- ページ見出し -->
+		<h1>購入履歴</h1>
+		<!-- 画面の説明文 -->
+		<p>あなたが購入した商品の一覧です。</p>
+		<!-- 購入履歴テーブル -->
+		<table>
+			<!-- テーブルのヘッダ行 -->
+			<thead>
+				<tr>
+					<!-- 商品名の列見出し -->
+					<th>商品名</th>
+					<!-- 出品者名の列見出し -->
+					<th>出品者</th>
+					<!-- 価格の列見出し -->
+					<th>価格</th>
+					<!-- ステータスの列見出し -->
+					<th>ステータス</th>
+				</tr>
+			</thead>
+			<!-- テーブル本体 -->
+			<tbody>
+				<!-- myOrders（購入履歴）を 1 件ずつ表示 -->
+				<tr th:each="order : ${myOrders}">
+					<!-- 購入した商品の商品名を表示 -->
+					<td th:text="${order.item.name}"></td>
+					<!-- 出品者の表示名を表示 -->
+					<td th:text="${order.item.seller.name}"></td>
+					<!-- 価格を通貨風に整形表示（¥＋カンマ区切り） -->
+					<td th:text="'¥' + ${#numbers.formatDecimal(order.price, 0, 'COMMA', 0,'POINT')}"></td>
+					<!-- 注文ステータス（購入済/発送済など）を表示 -->
+					<td th:text="${order.status}"></td>
+				</tr>
+				<!-- リストが空のときのメッセージ行 -->
+				<tr th:if="${#lists.isEmpty(myOrders)}">
+					<!-- 4 列を束ねて「購入なし」のメッセージを表示 -->
+					<td colspan="4">購入した商品はありません。</td>
+				</tr>
+			</tbody>
+		</table>
+		<!-- 画面下部のボタン群 -->
+		<div class="button-group">
+			<!-- マイページへ戻るリンク -->
+			<a th:href="@{/my-page}" class="button secondary">マイページに戻る</a>
+		</div>
+	</div>
+</body>
+
+</html>

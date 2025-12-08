@@ -1,0 +1,114 @@
+<!-- HTML5 文書であることを宣言 -->
+<!DOCTYPE html>
+<!-- ルート要素。言語=日本語、Thymeleaf と Spring Security Dialect の xmlns を宣言 -->
+<html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<!-- ヘッダー領域（メタ・タイトル・スタイル） -->
+
+<head>
+	<!-- 文字コードを UTF-8 に設定 -->
+	<meta charset="UTF-8">
+	<!-- タイトルは商品名 + 固定文言を組み合わせて表示 -->
+	<title th:text="${item.name} + '
+- 商品詳細'"></title>
+	<!-- 共通スタイルシートを読み込み -->
+	<link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<!-- 画面本体 -->
+
+<body>
+	<!-- レイアウト用の中央コンテナ -->
+	<div class="container">
+		<!-- 商品名を大見出しに表示 -->
+		<h1 th:text="${item.name}"></h1>
+		<!-- エラー時メッセージ（Flash 属性など）を表示 -->
+		<div th:if="${errorMessage}" class="error-message
+" th:text="${errorMessage}"></div>
+		<!-- 成功時メッセージ（Flash 属性など）を表示 -->
+		<div th:if="${successMessage}" class="success-message
+" th:text="${successMessage}"></div>
+		<!-- 商品詳細領域 -->
+		<div class="item-detail">
+			<!-- 商品画像（なければプレースホルダ）を表示 -->
+			<img th:src="${item.imageUrl != null ? item.imageUrl : '/images/placeholder.png'}" alt="商品画像"
+				class="item-image">
+			<!-- 価格を通貨風に整形して表示 -->
+			<p class="price">価格: <span
+					th:text="'¥' + ${#numbers.formatDecimal(item.price,0, 'COMMA', 0, 'POINT')}"></span></p>
+			<!-- 商品説明を表示 -->
+			<p>説明: <span th:text="${item.description}"></span></p>
+			<!-- カテゴリ名（null なら未分類）を表示 -->
+			<p>カテゴリ: <span th:text="${item.category != null ? item.category.name : '未分類'}"></span></p>
+			<!-- 出品者名と平均評価がある場合は併記 -->
+			<p>出品者: <span th:text="${item.seller.name}"></span>
+				<!-- 平均評価がモデルに存在する場合のみ表示 -->
+				<span th:if="${sellerAverageRating}">(平均評価: <span th:text="${sellerAverageRating}"></span>)</span>
+			</p>
+			<!-- 商品の現在ステータスを表示 -->
+			<p>ステータス: <span th:text="${item.status}"></span></p>
+			<!-- アクションボタン群 -->
+			<div class="button-group">
+				<!-- 自分以外が出品した「出品中」商品だけ購入ボタンを表示 -->
+				<form th:action="@{/orders/initiate-purchase}" method="post"
+					th:if="${item.status =='出品中' and item.seller.email != #authentication.name}"
+					onsubmit="return confirm('本当にこの商品を購入しますか？');">
+					<!-- Stripe 連携に渡す itemId を hidden で送信 -->
+					<input type="hidden" name="itemId" th:value="${item.id}">
+					<!-- 購入開始ボタン -->
+					<button type="submit" class="button">購入する</button>
+				</form>
+				<!-- 対象商品のチャット画面への導線 -->
+				<a th:href="@{/chat/{itemId}(itemId=${item.id})}" class="button secondary">チ
+					ャットで質問/交渉</a>
+				<!-- ログイン済みで、かつ自分の出品ではない場合にお気に入り操作を表示 -->
+				<div sec:authorize="isAuthenticated()" th:if="${item.seller.email !=#authentication.name}">
+					<!-- 既にお気に入り済みのときは解除ボタンを表示 -->
+					<form th:if="${isFavorited}" th:action="@{/items/{id}/unfavorite(id=${item.id})}" method="post"
+						style="display:inline;">
+						<!-- お気に入り解除ボタン（赤系） -->
+						<button type="submit" class="button danger">お気に入り解除</button>
+					</form>
+					<!-- 未登録のときはお気に入り追加ボタンを表示 -->
+					<form th:unless="${isFavorited}" th:action="@{/items/{id}/favorite(id=${item.id})}" method="post"
+						style="display:inline;">
+						<!-- お気に入り追加ボタン -->
+						<button type="submit" class="button">お気に入りに追加</button>
+					</form>
+				</div>
+			</div>
+		</div>
+		<!-- チャット見出し -->
+		<h2>チャット</h2>
+		<!-- チャットの表示ボックス -->
+		<div class="chat-box">
+			<!-- チャット履歴を時系列で描画。送信者が自分なら my-message クラスを付与 -->
+			<div th:each="chat : ${chats}" class="chat-message"
+				th:classappend="${chat.sender.email == #authentication.name ? 'my-message' : 'other-message'}">
+				<!-- 送信者名 -->
+				<span class="sender-name" th:text="${chat.sender.name}"></span>
+				<!-- 送信日時（yyyy/MM/dd HH:mm 形式） -->
+				<span class="message-time" th:text="${#temporals.format(chat.createdAt,'yyyy/MM/dd HH:mm')}"></span>
+				<!-- メッセージ本文 -->
+				<p th:text="${chat.message}"></p>
+			</div>
+			<!-- チャットが 1 件もない場合のメッセージ -->
+			<div th:if="${#lists.isEmpty(chats)}">
+				<!-- 空の旨を通知 -->
+				<p>まだチャットメッセージはありません。</p>
+			</div>
+		</div>
+		<!-- チャット送信フォーム -->
+		<form th:action="@{/chat/{itemId}(itemId=${item.id})}" method="post" class="chat-form">
+			<!-- 入力テキストエリア（必須） -->
+			<textarea name="message" placeholder="メッセージを入力してください" required></textarea>
+			<!-- 送信ボタン -->
+			<button type="submit">送信</button>
+		</form>
+		<!-- 下部の戻るボタン -->
+		<div class="button-group">
+			<!-- 商品一覧ページへの戻りリンク -->
+			<a th:href="@{/items}" class="button secondary">商品一覧に戻る</a>
+		</div>
+	</div>
+</body>
+
+</html>

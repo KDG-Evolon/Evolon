@@ -1,0 +1,80 @@
+<!-- HTML5 文書宣言 -->
+<!DOCTYPE html>
+<!-- ルート要素。日本語と Thymeleaf/Spring Security Dialect を有効化 -->
+<html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<!-- ヘッダー領域 -->
+
+<head>
+	<!-- 文字コード設定 -->
+	<meta charset="UTF-8">
+	<!-- ページタイトル -->
+	<title>管理者: ユーザー管理 - フリマアプリ</title>
+	<!-- 共通スタイルの読み込み -->
+	<link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<!-- 本体 -->
+
+<body>
+	<!-- レイアウト用コンテナ -->
+	<div class="container">
+		<!-- 見出し -->
+		<h1>管理者: ユーザー管理</h1>
+		<!-- 説明テキスト -->
+		<p>システム内の全てのユーザーを管理します。</p>
+		<!-- ユーザー一覧テーブル -->
+		<table>
+			<!-- 列見出し -->
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>名前</th>
+					<th>メールアドレス</th>
+					<th>役割</th>
+					<th>有効/無効</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<!-- テーブル本体 -->
+			<tbody>
+				<!-- users をループし 1 行ずつ描画 -->
+				<tr th:each="user : ${users}">
+					<!-- ユーザーID -->
+					<td th:text="${user.id}"></td>
+					<!-- 表示名 -->
+					<td th:text="${user.name}"></td>
+					<!-- メールアドレス -->
+					<td th:text="${user.email}"></td>
+					<!-- 権限（USER/ADMIN） -->
+					<td th:text="${user.role}"></td>
+					<!-- 有効/無効の表示（三項演算） -->
+					<td th:text="${user.enabled ? '有効' : '無効'}"></td>
+					<!-- 操作列（有効/無効トグル） -->
+					<td>
+						<!-- トグル用 POST フォーム。ボタンの見た目とラベルを状態で切替 -->
+						<form th:action="@{/admin/users/{id}/toggle-enabled(id=${user.id})}" method="post"
+							style="display:inline;">
+							<!-- enabled の真偽でボタンのクラスと表示文言を切替し、確認ダイアログを表示 -->
+							<button type="submit" class="button"
+								th:classappend="${user.enabled ? 'danger' : 'secondary'}"
+								th:text="${user.enabled ? '無効にする' : '有効にする'}"
+								onclick="return confirm('本当にこのユーザーを${user.enabled} ? \'無効\' : \'有効\']]にしますか？');"</button>
+						</form>
+					</td>
+				</tr>
+				<!-- ユーザーが 1 件もいない場合の行 -->
+				<tr th:if="${#lists.isEmpty(users)}">
+					<!-- 全列結合してメッセージ表示 -->
+					<td colspan="6">ユーザーがいません。</td>
+				</tr>
+			</tbody>
+		</table>
+		<!-- 戻るボタン群 -->
+		<div class="button-group">
+			<!-- 管理者ダッシュボードへ戻るリンク -->
+			<a th:href="@{/admin/dashboard}" class="button secondary">管理者ダッシュボードに戻
+				る</a>
+		</div>
+	</div>
+</body>
+
+</html>

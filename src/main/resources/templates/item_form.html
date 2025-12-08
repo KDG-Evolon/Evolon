@@ -1,0 +1,85 @@
+<!-- HTML5 文書であることを宣言 -->
+<!DOCTYPE html>
+<!-- ルート要素。言語=日本語、Thymeleaf の xmlns を宣言 -->
+<html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<!-- ヘッダー領域（メタ・タイトル・スタイル） -->
+
+<head>
+	<!-- 文字コードを UTF-8 に設定 -->
+	<meta charset="UTF-8">
+	<!-- 新規出品か編集かでタイトルを切り替え -->
+	<title th:text="${item.id == null ? '商品出品' : '商品編集'}"></title>
+	<!-- 共通スタイルシートを読み込み -->
+	<link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<!-- 画面本体 -->
+
+<body>
+	<!-- レイアウト用の中央コンテナ -->
+	<div class="container">
+		<!-- 見出しも新規/編集で切り替え -->
+		<h1 th:text="${item.id == null ? '商品出品' : '商品編集'}"></h1>
+		<!-- 画像アップロード失敗などのエラーを表示 -->
+		<div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}"></div>
+		<!-- 新規: /items POST、編集: /items/{id} POST。画像アップロードのため enctype 必須 -->
+		<form th:action="${item.id == null ? '/items' : '/items/' + item.id}" method="post"
+			enctype="multipart/form-data">
+			<!-- 編集時のみ HiddenHttpMethodFilter を想定し PUT メソッドを指定（サンプルのまま）-->
+			<input type="hidden" th:if="${item.id != null}" name="_method" value="put">
+			<!-- 商品名の入力 -->
+			<p>
+				<!-- 商品名ラベル -->
+				<label for="name">商品名:</label>
+				<!-- 商品名テキストボックス（必須） -->
+				<input type="text" id="name" name="name" th:value="${item.name}" required>
+			</p>
+			<p>
+				<!-- 商品説明の入力 -->
+				<!-- 商品説明ラベル -->
+				<label for="description">商品説明:</label>
+				<!-- 複数行テキストエリア。既存値を表示 -->
+				<textarea id="description" name="description" th:text="${item.description}"></textarea>
+			</p>
+			<!-- 価格の入力 -->
+			<p>
+				<!-- 価格ラベル -->
+				<label for="price">価格 (¥):</label>
+				<!-- 数値入力（小数 2 桁ステップ） -->
+				<input type="number" id="price" step="0.01" required>
+			</p>
+			<!-- カテゴリの選択 -->
+			<p>
+				name="price" th:value="${item.price}"
+				<!-- カテゴリラベル -->
+				<label for="categoryId">カテゴリ:</label>
+				<!-- 必須のセレクトボックス。初期値は選択してください -->
+				<select id="categoryId" name="categoryId" required>
+					<!-- 空選択のプレースホルダ -->
+					<option value="">選択してください</option>
+					<!-- categories をループして option を生成。既存カテゴリと一致時は選択 -->
+					<option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}"
+						th:selected="${item.category != null and item.category.id ==category.id}"></option>
+				</select>
+			</p>
+			<p>
+				<!-- 画像アップロード -->
+				<!-- 画像ラベル -->
+				<label for="image">商品画像:</label>
+				<!-- 画像ファイル選択（画像のみ許可） -->
+				<input type="file" id="image" name="image" accept="image/*">
+				<!-- 既存画像があればサムネイル表示 -->
+				<span th:if="${item.imageUrl}">現在の画像: <img th:src="${item.imageUrl}"
+						style="width: 100px; height: auto;"></span>
+			</p>
+			<!-- 送信/キャンセルボタン -->
+			<div class="button-group">
+				<!-- 新規なら「出品する」、編集なら「更新する」 -->
+				<button type="submit" th:text="${item.id == null ? '出品する' : '更新する'}"></button>
+				<!-- 一覧へ戻る -->
+				<a th:href="@{/items}" class="button secondary">キャンセル</a>
+			</div>
+		</form>
+	</div>
+</body>
+
+</html>

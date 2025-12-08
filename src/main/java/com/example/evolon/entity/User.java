@@ -47,4 +47,9 @@ public class User {
 	//アカウントの有効/無効フラグ。初期値は true（有効）
 	@Column(nullable = false)
 	private boolean enabled = true; // New field
+
+	public boolean isBanned() {
+		// TODO 自動生成されたメソッド・スタブ
+		return false;
+	}
 }
