@@ -1,3 +1,4 @@
+// 管理者によるユーザー管理機能を提供するコントローラー
 package com.example.evolon.controller;
 
 import java.util.Comparator;
@@ -18,10 +19,13 @@ import com.example.evolon.entity.User;
 import com.example.evolon.repository.UserRepository;
 import com.example.evolon.service.AdminUserService;
 
+/**
+ * 管理者用ユーザー管理コントローラ
+ */
 @Controller
 @RequestMapping("/admin/users")
 @PreAuthorize("hasRole('ADMIN')")
-public class AdminController {
+public class AdminUserController {
 
 	/** 管理者向けユーザー管理サービス */
 	private final AdminUserService service;
@@ -30,23 +34,25 @@ public class AdminController {
 	private final UserRepository users;
 
 	/** コンストラクタインジェクション */
-	public AdminController(AdminUserService service, UserRepository users) {
+	public AdminUserController(AdminUserService service, UserRepository users) {
 		this.service = service;
 		this.users = users;
 	}
 
-	/* =========================
-	 * ユーザー一覧
-	 * ========================= */
+	/**
+	 * ユーザー一覧表示
+	 * GET /admin/users
+	 */
 	@GetMapping
 	public String list(
 			@RequestParam(value = "q", required = false) String q,
-			@RequestParam(value = "sort", defaultValue = "id") String sort,
+			@RequestParam(value = "sort", required = false, defaultValue = "id") String sort,
 			Model model) {
 
+		// 全ユーザー取得
 		List<User> list = service.listAllUsers();
 
-		// 検索
+		// 検索フィルタ
 		if (StringUtils.hasText(q)) {
 			String keyword = q.toLowerCase();
 			list = list.stream()
@@ -55,21 +61,24 @@ public class AdminController {
 					.toList();
 		}
 
-		// ソート
+		// ソート処理（Java17 switch）
 		list = switch (sort) {
 		case "name" -> list.stream()
 				.sorted(Comparator.comparing(
 						User::getName,
 						Comparator.nullsLast(String::compareToIgnoreCase)))
 				.toList();
+
 		case "email" -> list.stream()
 				.sorted(Comparator.comparing(
 						User::getEmail,
 						Comparator.nullsLast(String::compareToIgnoreCase)))
 				.toList();
+
 		case "banned" -> list.stream()
 				.sorted(Comparator.comparing(User::isBanned).reversed())
 				.toList();
+
 		default -> list;
 		};
 
@@ -80,25 +89,29 @@ public class AdminController {
 		return "admin/users/list";
 	}
 
-	/* =========================
-	 * ユーザー詳細
-	 * ========================= */
+	/**
+	 * ユーザー詳細表示
+	 * GET /admin/users/{id}
+	 */
 	@GetMapping("/{id}")
 	public String detail(@PathVariable Long id, Model model) {
 
 		User user = service.findUser(id);
+		Double avgRating = service.averageRating(id);
+		long complaintCount = service.complaintCount(id);
 
 		model.addAttribute("user", user);
-		model.addAttribute("avgRating", service.averageRating(id));
-		model.addAttribute("complaintCount", service.complaintCount(id));
+		model.addAttribute("avgRating", avgRating);
+		model.addAttribute("complaintCount", complaintCount);
 		model.addAttribute("complaints", service.complaints(id));
 
 		return "admin/users/detail";
 	}
 
-	/* =========================
-	 * BAN
-	 * ========================= */
+	/**
+	 * ユーザー BAN 処理
+	 * POST /admin/users/{id}/ban
+	 */
 	@PostMapping("/{id}/ban")
 	public String ban(
 			@PathVariable Long id,
@@ -111,15 +124,19 @@ public class AdminController {
 				.orElse(null);
 
 		service.banUser(id, adminId, reason, disableLogin);
+
 		return "redirect:/admin/users/" + id + "?banned";
 	}
 
-	/* =========================
-	 * BAN解除
-	 * ========================= */
+	/**
+	 * ユーザー BAN 解除
+	 * POST /admin/users/{id}/unban
+	 */
 	@PostMapping("/{id}/unban")
 	public String unban(@PathVariable Long id) {
+
 		service.unbanUser(id);
+
 		return "redirect:/admin/users/" + id + "?unbanned";
 	}
 }

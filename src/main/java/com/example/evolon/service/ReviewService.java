@@ -1,13 +1,9 @@
 package com.example.evolon.service;
 
-//リストを扱うための import
 import java.util.List;
-//平均計算の戻り値に OptionalDouble を使うための import
 import java.util.OptionalDouble;
 
-//サービスアノテーションの import
 import org.springframework.stereotype.Service;
-//トランザクション境界の宣言
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.evolon.entity.AppOrder;
@@ -16,73 +12,71 @@ import com.example.evolon.entity.User;
 import com.example.evolon.repository.AppOrderRepository;
 import com.example.evolon.repository.ReviewRepository;
 
-//サービス層の宣言
 @Service
 public class ReviewService {
-	//レビューリポジトリの参照
+
 	private final ReviewRepository reviewRepository;
-	//注文リポジトリの参照
 	private final AppOrderRepository appOrderRepository;
 
-	//依存性をコンストラクタ注入
-	public ReviewService(ReviewRepository reviewRepository, AppOrderRepository appOrderRepository) {
-		//レビューリポジトリを設定
+	public ReviewService(ReviewRepository reviewRepository,
+			AppOrderRepository appOrderRepository) {
 		this.reviewRepository = reviewRepository;
-		//注文リポジトリを設定
 		this.appOrderRepository = appOrderRepository;
 	}
 
-	//レビュー投稿（買い手のみ、1 注文 1 レビュー）
+	/**
+	 * レビュー投稿（買い手のみ、1注文1レビュー）
+	 */
 	@Transactional
 	public Review submitReview(Long orderId, User reviewer, int rating, String comment) {
-		//注文を取得（存在しなければ 400 相当）
+
+		// 注文取得（存在しなければ例外）
 		AppOrder order = appOrderRepository.findById(orderId)
 				.orElseThrow(() -> new IllegalArgumentException("Order not found."));
-		//注文の買い手と同一ユーザか検証
+
+		// 買い手本人かチェック
 		if (!order.getBuyer().getId().equals(reviewer.getId())) {
-			//買い手以外は拒否
 			throw new IllegalStateException("Only the buyer can review this order.");
 		}
-		//既にレビュー済みかを検査
+
+		// 既にレビュー済みかチェック
 		if (reviewRepository.findByOrderId(orderId).isPresent()) {
-			//二重レビューを防ぐ
 			throw new IllegalStateException("This order has already been reviewed.");
 		}
-		//新しいレビューエンティティを構築
+
+		// 新規レビュー作成
 		Review review = new Review();
-		//注文を紐付け
 		review.setOrder(order);
-		//レビュワーを設定
 		review.setReviewer(reviewer);
-		//出品者（注文の商品の出品者）を設定
 		review.setSeller(order.getItem().getSeller());
-		//対象商品を設定
 		review.setItem(order.getItem());
-		//評価点を設定
 		review.setRating(rating);
-		//コメントを設定
 		review.setComment(comment);
-		//保存して返却
+
+		// 保存して返却
 		return reviewRepository.save(review);
 	}
 
-	//出品者に対するレビュー一覧を取得
+	/**
+	 * 出品者へのレビュー一覧取得
+	 */
 	public List<Review> getReviewsBySeller(User seller) {
-		//リポジトリに委譲
 		return reviewRepository.findBySeller(seller);
 	}
 
-	//出品者に対する平均評価を算出
+	/**
+	 * 出品者の平均評価
+	 */
 	public OptionalDouble getAverageRatingForSeller(User seller) {
-		//ストリームで平均を計算
 		return reviewRepository.findBySeller(seller).stream()
 				.mapToInt(Review::getRating)
 				.average();
 	}
 
-	//あるレビュワーが書いたレビューを取得
+	/**
+	 * レビュワー自身のレビュー一覧
+	 */
 	public List<Review> getReviewsByReviewer(User reviewer) {
-		//リポジトリに委譲
 		return reviewRepository.findByReviewer(reviewer);
 	}
 }

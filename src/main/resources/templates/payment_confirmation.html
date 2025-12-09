@@ -1,52 +1,63 @@
 <!DOCTYPE html>
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
-
 <head>
     <meta charset="UTF-8">
     <title>決済確認 - フリマアプリ</title>
+
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <script src="https://js.stripe.com/v3/"></script>
 </head>
-
 <body>
 <div class="container">
     <h1>決済確認</h1>
     <p>以下の内容で決済を完了します。</p>
 
+    <!-- Stripe Elements 描画領域 -->
     <div id="payment-element"></div>
 
+    <!-- 決済ボタン -->
     <button id="submit" class="button">決済を完了する</button>
 
+    <!-- エラーメッセージ -->
     <div id="payment-message" class="error-message"></div>
 
+    <!-- 商品詳細へ戻る -->
     <div class="button-group">
-        <a th:href="@{/items/{id}(id=${itemId})}" class="button secondary">商品詳細に戻る</a>
+        <a th:href="@{/items/{id}(id=${itemId})}" class="button secondary">
+            商品詳細に戻る
+        </a>
     </div>
 </div>
 
 <script th:inline="javascript">
-	const stripePublicKey = /*[[${stripePublicKey}]]*/ "";
-	  const clientSecret = /*[[${clientSecret}]]*/ "";
-	  const itemId = /*[[${itemId}]]*/ 0;
+    /* サーバーから受け取った値 */
+    const stripePublicKey = [[${stripePublicKey}]];
+    const clientSecret = [[${clientSecret}]];
+    const itemId = [[${itemId}]];
 
+    /* Stripe 初期化 */
     const stripe = Stripe(stripePublicKey);
-    const elements = stripe.elements({clientSecret});
-    const paymentElement = elements.create('payment');
-    paymentElement.mount('#payment-element');
 
-    const submitButton = document.getElementById('submit');
-    const messageContainer = document.getElementById('payment-message');
+    /* Elements 初期化 */
+    const elements = stripe.elements({ clientSecret });
+    const paymentElement = elements.create("payment");
+    paymentElement.mount("#payment-element");
 
-    submitButton.addEventListener('click', async (e) => {
+    const submitButton = document.getElementById("submit");
+    const messageContainer = document.getElementById("payment-message");
+
+    submitButton.addEventListener("click", async (e) => {
         e.preventDefault();
 
         const { error } = await stripe.confirmPayment({
             elements,
             confirmParams: {
-                return_url: window.location.origin + '/orders/complete-purchase?paymentIntentId=' +
-                    clientSecret.split('_')[0] + '_' + clientSecret.split('_')[1]
+                return_url:
+                    window.location.origin +
+                    "/orders/complete-purchase?paymentIntentId=" +
+                    clientSecret.split("_secret")[0],
             },
-            redirect: 'if_required',
+            redirect: "if_required",
         });
 
         if (error) {
@@ -55,14 +66,14 @@
             } else {
                 messageContainer.textContent = "予期せぬエラーが発生しました。";
             }
-            return;
+        } else {
+            // リダイレクト不要で成功した場合
+            const paymentIntentId = clientSecret.split("_secret")[0];
+            window.location.href =
+                "/orders/complete-purchase?paymentIntentId=" +
+                paymentIntentId;
         }
-
-        // エラーなし（即時成功）
-        const paymentIntentId = clientSecret.split('_')[0] + '_' + clientSecret.split('_')[1];
-        window.location.href = '/orders/complete-purchase?paymentIntentId=' + paymentIntentId;
     });
 </script>
-
 </body>
 </html>
