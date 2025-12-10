@@ -1,66 +1,77 @@
 package com.example.evolon.controller;
 
-import com.example.fleamarketsystem.entity.User;
-import com.example.fleamarketsystem.service.ChatService;
-import com.example.fleamarketsystem.service.ItemService;
-import com.example.fleamarketsystem.service.UserService;
+//ログインユーザをメソッド引数で受けるためのアノテーション
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+//Spring Security のユーザ詳細型
 import org.springframework.security.core.userdetails.UserDetails;
+//MVC コントローラを示すアノテーション
 import org.springframework.stereotype.Controller;
+//画面に値を渡すための Model
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+//ルーティングアノテーション群
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-// このクラスが Web リクエストを処理するコントローラであることを示す
+import com.example.evolon.entity.User;
+//チャット機能のビジネスロジックサービス
+import com.example.evolon.service.ChatService;
+//商品取得などで使うサービス
+import com.example.evolon.service.ItemService;
+//認証ユーザの実体を取得するためのサービス
+import com.example.evolon.service.UserService;
+
+//MVC コントローラとして登録
 @Controller
-// このクラスで扱う URL パスの先頭を /chat に固定する
+//ベースパス /chat にマッピング
 @RequestMapping("/chat")
 public class ChatController {
-	// チャットメッセージに関するビジネスロジックを扱うサービス
+	//チャットサービスの参照
 	private final ChatService chatService;
-	// 商品情報取得などを行うサービス
+	//商品サービスの参照
 	private final ItemService itemService;
-	// ユーザー情報取得などを行うサービス
+	//ユーザサービスの参照
 	private final UserService userService;
 
-	// 必要なサービスをコンストラクタインジェクションで受け取る
+	//必要な依存をコンストラクタで受け取る
 	public ChatController(ChatService chatService, ItemService itemService, UserService userService) {
-		// 引数で受け取った ChatService をフィールドに設定
+		//フィールドへ代入
 		this.chatService = chatService;
-		// 引数で受け取った ItemService をフィールドに設定
+		//フィールドへ代入
 		this.itemService = itemService;
-		// 引数で受け取った UserService をフィールドに設定
+		//フィールドへ代入
 		this.userService = userService;
 	}
 
-	// 指定された商品に紐づくチャット画面を表示するハンドラ（GET /chat/{itemId}）
+	//商品単位のチャット画面を表示
 	@GetMapping("/{itemId}")
 	public String showChatScreen(@PathVariable("itemId") Long itemId, Model model) {
-		// 商品 ID から商品情報を取得し、存在しなければ例外を投げる
+		//商品を取得（見つからなければ例外送出）
 		model.addAttribute("item", itemService.getItemById(itemId)
 				.orElseThrow(() -> new RuntimeException("Item not found")));
-		// 対象商品のチャットメッセージ一覧を取得して Model に登録
+		//チャット履歴を昇順で取得
 		model.addAttribute("chats", chatService.getChatMessagesByItem(itemId));
-		// 商品詳細画面テンプレート（item_detail.html）を再利用してチャットを表示
-		return "item_detail"; // Re-use item_detail for chat display
+		//チャットは商品詳細テンプレートに埋め込んで表示
+		return "item_detail";
 	}
 
-	//指定された商品に対するチャットメッセージ送信を処理するハンドラ（POST /chat/{itemId}）
-@PostMapping("/{itemId}")
-public String sendMessage(
-//パスから対象商品 ID を取得
-@PathVariable("itemId") Long itemId,
-//ログイン中のユーザー情報を Spring Security から取得
-@AuthenticationPrincipal UserDetails userDetails,
-//フォームから送信されたメッセージ本文を取得
-@RequestParam("
-message
-") String message) {
-//ログインユーザーのメールアドレスから User エンティティを取得（存在しなければ例外）
-User sender = userService.getUserByEmail(userDetails.getUsername())
-.orElseThrow(() -> new RuntimeException("Sender not found"));
-//サービスを通じてチャットメッセージを保存・送信処理
-chatService.sendMessage(itemId, sender, message);
-//同じ商品のチャット画面へリダイレクトし、最新のメッセージ一覧を再表示
-return "redirect:/chat/{itemId}";
-}
+	//チャットの新規メッセージ送信
+	@PostMapping("/{itemId}")
+	public String sendMessage(
+			//パスから商品 ID を受け取る
+			@PathVariable("itemId") Long itemId,
+			//認証済みユーザを受け取る
+			@AuthenticationPrincipal UserDetails userDetails,
+			//送信するメッセージ本文を受け取る
+			@RequestParam("message") String message) {
+		//ログインユーザをメールで特定（見つからなければ例外）
+		User sender = userService.getUserByEmail(userDetails.getUsername())
+				.orElseThrow(() -> new RuntimeException("Sender not found"));
+		//サービス層に送信処理を委譲（通知などはサービス側で実施）
+		chatService.sendMessage(itemId, sender, message);
+		//送信後は同じチャット画面へ遷移
+		return "redirect:/chat/{itemId}";
+	}
 }
