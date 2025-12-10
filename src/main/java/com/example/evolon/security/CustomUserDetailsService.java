@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
+
 	private final UserRepository users; // User エンティティ操作用リポジトリ
 
 	@Override
@@ -25,16 +26,13 @@ public class CustomUserDetailsService implements UserDetailsService {
 		User u = users.findByEmailIgnoreCase(username)
 				.orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
-		if (!u.isEnabled())
+		if (!u.isEnabled()) {
 			throw new DisabledException("Account disabled");
-
-		if (u.isBanned())
-			throw new DisabledException("Account banned");
+		}
 
 		return new org.springframework.security.core.userdetails.User(
 				u.getEmail(),
 				u.getPassword(),
 				List.of(new SimpleGrantedAuthority("ROLE_" + u.getRole())));
 	}
-
 }

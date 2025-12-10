@@ -1,4 +1,3 @@
-// 管理者によるユーザー管理機能を提供するコントローラー
 package com.example.evolon.controller;
 
 import java.util.Comparator;
@@ -19,124 +18,108 @@ import com.example.evolon.entity.User;
 import com.example.evolon.repository.UserRepository;
 import com.example.evolon.service.AdminUserService;
 
-/**
- * 管理者用ユーザー管理コントローラ
- */
+// このクラスが Web リクエストを処理するコントローラーであることを示す
 @Controller
+// このクラスが扱う URL のプレフィックスを /admin/users に固定する
 @RequestMapping("/admin/users")
+// このクラス内のハンドラーメソッドは ADMIN ロールを持つユーザーのみ実行可能とする
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminUserController {
-
-	/** 管理者向けユーザー管理サービス */
+	// 管理者用ユーザー管理ロジックを提供するサービスを保持するフィールド
 	private final AdminUserService service;
-
-	/** ユーザーリポジトリ */
+	// ユーザー情報への DB アクセスを行うリポジトリを保持するフィールド
 	private final UserRepository users;
 
-	/** コンストラクタインジェクション */
+	// コンストラクタインジェクションでサービスとリポジトリを受け取る
 	public AdminUserController(AdminUserService service, UserRepository users) {
+		// 引数の AdminUserService をフィールドにセット
 		this.service = service;
+		// 引数の UserRepository をフィールドにセット
 		this.users = users;
 	}
 
-	/**
-	 * ユーザー一覧表示
-	 * GET /admin/users
-	 */
 	@GetMapping
-	public String list(
-			@RequestParam(value = "q", required = false) String q,
-			@RequestParam(value = "sort", required = false, defaultValue = "id") String sort,
-			Model model) {
-
-		// 全ユーザー取得
+	public String list(@RequestParam(value = "q", required = false) String q,
+			@RequestParam(value = "sort", required = false, defaultValue = "id") String sort, Model model) {
+		// 全ユーザー一覧をサービスから取得
 		List<User> list = service.listAllUsers();
-
-		// 検索フィルタ
+		// 検索キーワードが指定されている場合のみフィルタリングを実施
 		if (StringUtils.hasText(q)) {
-			String keyword = q.toLowerCase();
-			list = list.stream()
-					.filter(u -> (u.getName() != null && u.getName().toLowerCase().contains(keyword)) ||
-							(u.getEmail() != null && u.getEmail().toLowerCase().contains(keyword)))
+			// 検索キーワードを小文字に変換して大文字・小文字を区別しない検索に対応
+			String qq = q.toLowerCase();
+			// ストリーム API でユーザー名またはメールアドレスに
+			// 検索キーワードを含むレコードを抽出
+			list = list.stream().filter(u -> (u.getName() != null &&
+					u.getName().toLowerCase().contains(qq)) ||
+					(u.getEmail() != null &&
+							u.getEmail().toLowerCase().contains(qq)))
 					.toList();
 		}
-
-		// ソート処理（Java17 switch）
+		// sort パラメータの値に応じてソート条件を切り替える
 		list = switch (sort) {
-		case "name" -> list.stream()
-				.sorted(Comparator.comparing(
-						User::getName,
-						Comparator.nullsLast(String::compareToIgnoreCase)))
-				.toList();
-
-		case "email" -> list.stream()
-				.sorted(Comparator.comparing(
-						User::getEmail,
-						Comparator.nullsLast(String::compareToIgnoreCase)))
-				.toList();
-
+		// 名前順ソート：null は最後に回し、大文字小文字を無視して比較
+		case "name" -> list.stream().sorted(Comparator.comparing(User::getName,
+				Comparator.nullsLast(String::compareToIgnoreCase))).toList();
+		// メールアドレス順ソート：同様に null を最後、大文字小文字無視
+		case "email" -> list.stream().sorted(Comparator.comparing(User::getEmail,
+				Comparator.nullsLast(String::compareToIgnoreCase))).toList();
+		// BAN フラグ順ソート：BAN されているユーザーを優先表示するため降順（true が先）
 		case "banned" -> list.stream()
-				.sorted(Comparator.comparing(User::isBanned).reversed())
-				.toList();
-
+				.sorted(Comparator.comparing(User::isBanned).reversed()).toList();
+		// デフォルトはソートなし（取得した順のまま）
 		default -> list;
 		};
-
+		// 画面に表示するユーザー一覧を Model に格納
 		model.addAttribute("users", list);
+		// 検索キーワードを再表示用に Model に格納
 		model.addAttribute("q", q);
+		// 現在のソート条件も画面側で利用できるよう Model に格納
 		model.addAttribute("sort", sort);
-
+		// ユーザー一覧画面に対応するテンプレートを返却
 		return "admin/users/list";
 	}
 
-	/**
-	 * ユーザー詳細表示
-	 * GET /admin/users/{id}
-	 */
 	@GetMapping("/{id}")
 	public String detail(@PathVariable Long id, Model model) {
-
+		// 指定 ID のユーザー情報をサービスから取得
 		User user = service.findUser(id);
-		Double avgRating = service.averageRating(id);
-		long complaintCount = service.complaintCount(id);
-
+		// 指定ユーザーの平均評価値を取得
+		Double avg = service.averageRating(id);
+		// 指定ユーザーに対するクレーム件数を取得
+		long complaints = service.complaintCount(id);
+		// ユーザー情報を画面表示用に Model に格納
 		model.addAttribute("user", user);
-		model.addAttribute("avgRating", avgRating);
-		model.addAttribute("complaintCount", complaintCount);
+		// 平均評価を Model に格納
+		model.addAttribute("avgRating", avg);
+		// クレーム件数を Model に格納
+		model.addAttribute("complaintCount", complaints);
+		// クレーム詳細一覧を Model に格納
 		model.addAttribute("complaints", service.complaints(id));
-
+		// ユーザー詳細画面に対応するテンプレート名を返却
 		return "admin/users/detail";
 	}
 
-	/**
-	 * ユーザー BAN 処理
-	 * POST /admin/users/{id}/ban
-	 */
+	// ユーザーを BAN（利用停止）する処理を担当するハンドラー（POST /admin/users/{id}/ban）
 	@PostMapping("/{id}/ban")
-	public String ban(
-			@PathVariable Long id,
+	public String ban(@PathVariable Long id,
 			@RequestParam("reason") String reason,
 			@RequestParam(value = "disableLogin", defaultValue = "true") boolean disableLogin,
 			Authentication auth) {
-
-		Long adminId = users.findByEmailIgnoreCase(auth.getName())
-				.map(User::getId)
-				.orElse(null);
-
+		// 認証情報から現在ログイン中の管理者のメールアドレスを取得し、
+		// 対応する管理者ユーザーID を取得
+		Long adminId = users.findByEmailIgnoreCase(auth.getName()).map(User::getId).orElse(null);
+		// 対象ユーザーを BAN し、その操作を行った管理者 ID・理由・ログイン停止フラグを渡す
 		service.banUser(id, adminId, reason, disableLogin);
-
+		// 対象ユーザー詳細画面へリダイレクトし、クエリパラメータで BAN 済みであることを通知
 		return "redirect:/admin/users/" + id + "?banned";
 	}
 
-	/**
-	 * ユーザー BAN 解除
-	 * POST /admin/users/{id}/unban
-	 */
+	// ユーザーの BAN を解除する処理を担当するハンドラー（POST /admin/users/{id}/unban）
 	@PostMapping("/{id}/unban")
 	public String unban(@PathVariable Long id) {
-
+		// 指定ユーザーの BAN 状態を解除するようサービスに依頼
 		service.unbanUser(id);
-
+		// 対象ユーザー詳細画面へリダイレクトし、クエリパラメータで解除済みであることを通知
 		return "redirect:/admin/users/" + id + "?unbanned";
 	}
 }

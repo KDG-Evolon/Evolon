@@ -1,14 +1,19 @@
 package com.example.evolon.controller;
 
-import com.example.fleamarketsystem.entity.User;
-import com.example.fleamarketsystem.service.ChatService;
-import com.example.fleamarketsystem.service.ItemService;
-import com.example.fleamarketsystem.service.UserService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.example.evolon.entity.User;
+import com.example.evolon.service.ChatService;
+import com.example.evolon.service.ItemService;
+import com.example.evolon.service.UserService;
 
 // このクラスが Web リクエストを処理するコントローラであることを示す
 @Controller
@@ -45,22 +50,20 @@ public class ChatController {
 	}
 
 	//指定された商品に対するチャットメッセージ送信を処理するハンドラ（POST /chat/{itemId}）
-@PostMapping("/{itemId}")
-public String sendMessage(
-//パスから対象商品 ID を取得
-@PathVariable("itemId") Long itemId,
-//ログイン中のユーザー情報を Spring Security から取得
-@AuthenticationPrincipal UserDetails userDetails,
-//フォームから送信されたメッセージ本文を取得
-@RequestParam("
-message
-") String message) {
-//ログインユーザーのメールアドレスから User エンティティを取得（存在しなければ例外）
-User sender = userService.getUserByEmail(userDetails.getUsername())
-.orElseThrow(() -> new RuntimeException("Sender not found"));
-//サービスを通じてチャットメッセージを保存・送信処理
-chatService.sendMessage(itemId, sender, message);
-//同じ商品のチャット画面へリダイレクトし、最新のメッセージ一覧を再表示
-return "redirect:/chat/{itemId}";
-}
+	@PostMapping("/{itemId}")
+	public String sendMessage(
+			//パスから対象商品 ID を取得
+			@PathVariable("itemId") Long itemId,
+			//ログイン中のユーザー情報を Spring Security から取得
+			@AuthenticationPrincipal UserDetails userDetails,
+			//フォームから送信されたメッセージ本文を取得
+			@RequestParam("message") String message) {
+		//ログインユーザーのメールアドレスから User エンティティを取得（存在しなければ例外）
+		User sender = userService.getUserByEmail(userDetails.getUsername())
+				.orElseThrow(() -> new RuntimeException("Sender not found"));
+		//サービスを通じてチャットメッセージを保存・送信処理
+		chatService.sendMessage(itemId, sender, message);
+		//同じ商品のチャット画面へリダイレクトし、最新のメッセージ一覧を再表示
+		return "redirect:/chat/{itemId}";
+	}
 }
