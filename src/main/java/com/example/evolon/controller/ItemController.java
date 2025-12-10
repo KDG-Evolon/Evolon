@@ -69,12 +69,16 @@ public class ItemController {
 	//お気に入りサービスへの参照
 	private final FavoriteService favoriteService;
 	//レビューサービスへの参照
-	private final ReviewService reviewService;
+	private final ReviewService reviewService; // Declare ReviewService
 
 	//依存関係をコンストラクタインジェクションで受け取る
-	public ItemController(ItemService itemService, CategoryService categoryService,
+	public ItemController(
+			ItemService itemService,
+			CategoryService categoryService,
 			UserService userService,
-			ChatService chatService, FavoriteService favoriteService, ReviewService reviewService) {
+			ChatService chatService,
+			FavoriteService favoriteService,
+			ReviewService reviewService) {
 		//商品サービスをフィールドに設定
 		this.itemService = itemService;
 		//カテゴリサービスをフィールドに設定
@@ -116,7 +120,9 @@ public class ItemController {
 
 	//商品詳細表示の GET エンドポイント
 	@GetMapping("/{id}")
-	public String showItemDetail(@PathVariable("id") Long id, @AuthenticationPrincipal UserDetails userDetails,
+	public String showItemDetail(
+			@PathVariable("id") Long id,
+			@AuthenticationPrincipal UserDetails userDetails,
 			Model model) {
 		//商品を ID で検索（存在しない場合の判定に Optional を使う）
 		Optional<Item> item = itemService.getItemById(id);
@@ -286,7 +292,8 @@ public class ItemController {
 
 	// 出品削除の POST エンドポイント
 	@PostMapping("/{id}/delete")
-	public String deleteItem(@PathVariable("id") Long id, @AuthenticationPrincipal UserDetails userDetails,
+	public String deleteItem(@PathVariable("id") Long id,
+			@AuthenticationPrincipal UserDetails userDetails,
 			RedirectAttributes redirectAttributes) {
 		// 削除対象の商品を取得
 		Item itemToDelete = itemService.getItemById(id)
@@ -311,7 +318,9 @@ public class ItemController {
 
 	// お気に入り登録の POST
 	@PostMapping("/{id}/favorite")
-	public String addFavorite(@PathVariable("id") Long itemId, @AuthenticationPrincipal UserDetails userDetails,
+	public String addFavorite(
+			@PathVariable("id") Long itemId,
+			@AuthenticationPrincipal UserDetails userDetails,
 			RedirectAttributes redirectAttributes) {
 		// 現在ユーザを取得
 		User currentUser = userService.getUserByEmail(userDetails.getUsername())
@@ -332,7 +341,9 @@ public class ItemController {
 
 	// お気に入り解除の POST
 	@PostMapping("/{id}/unfavorite")
-	public String removeFavorite(@PathVariable("id") Long itemId, @AuthenticationPrincipal UserDetails userDetails,
+	public String removeFavorite(
+			@PathVariable("id") Long itemId,
+			@AuthenticationPrincipal UserDetails userDetails,
 			RedirectAttributes redirectAttributes) {
 		// 現在ユーザを取得
 		User currentUser = userService.getUserByEmail(userDetails.getUsername())
