@@ -1,6 +1,7 @@
 package com.example.evolon.entity;
 
-//JPA インポート
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -8,48 +9,37 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-//Lombok インポート
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-//JPA エンティティ宣言
-@Entity
-//テーブル名 users を使用
-@Table(name = "users")
-//Lombok：getter/setter 等
-@Data
-//Lombok：デフォルトコンストラクタ
+@Entity // JPA 管理対象のエンティティ
+@Table(name = "users") // DB テーブル名
+@Data // Getter/Setter, toString など自動生成
 @NoArgsConstructor
-//Lombok：全フィールドコンストラクタ
 @AllArgsConstructor
 public class User {
-	//主キー
-	@Id
-	//自動採番（IDENTITY）
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
-	//表示名（必須）
+	@Id // 主キー
+	@GeneratedValue(strategy = GenerationType.IDENTITY) // Auto Increment
+	private Long id; // ユーザーID
 	@Column(nullable = false)
-	private String name;
-	//ログイン ID に使用。ユニーク制約
-	@Column(unique = true)
-	private String email;
-	//ハッシュ化されたパスワード（必須）
+	private String name; // ユーザー名（表示名）
+	@Column(unique = true, nullable = false)
+	private String email; // ログイン ID として使用するメールアドレス
 	@Column(nullable = false)
-	private String password;
-	//役割（USER / ADMIN）（必須）
+	private String password; // パスワード（暗号化保存）
 	@Column(nullable = false)
-	private String role;
-	//LINE Notify のアクセストークン（任意）
+	private String role; // ロール（USER / ADMIN）
 	@Column(name = "line_notify_token")
-	private String lineNotifyToken;
-	//アカウントの有効/無効フラグ。初期値は true（有効）
+	private String lineNotifyToken; // LINE 通知用トークン（任意）
 	@Column(nullable = false)
-	private boolean enabled = true; // New field
-
-	public boolean isBanned() {
-		// TODO 自動生成されたメソッド・スタブ
-		return false;
-	}
+	private boolean enabled = true; // アカウント有効フラグ（false = 退会/停止）
+	@Column(nullable = false)
+	private boolean banned = false; // 強制 BAN フラグ（true=停止）
+	@Column(name = "ban_reason")
+	private String banReason; // BAN 理由
+	@Column(name = "banned_at")
+	private LocalDateTime bannedAt; // BAN 日時
+	@Column(name = "banned_by_admin_id")
+	private Integer bannedByAdminId; // BAN 実行管理者の ID
 }
