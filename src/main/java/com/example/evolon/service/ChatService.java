@@ -47,7 +47,7 @@ public class ChatService {
 		User receiver = item.getSeller();
 		if (receiver != null && receiver.getLineNotifyToken() != null) {
 			String notificationMessage = String.format(
-					"\n商品「%s」に新しいメッセージがあります。\n送信者: %s\nメッセージ: %s",
+					"\n 商品「%s」に関する新しいメッセージが届きました！\n 送信者: %s\n メッセージ: %s",
 					item.getName(),
 					sender.getName(),
 					message);
