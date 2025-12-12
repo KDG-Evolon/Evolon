@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>問い合わせ詳細</title>
+</head>
+<body>
+    <h1>問い合わせ詳細</h1>
+
+    <p><strong>ID:</strong> <span th:text="${inquiry.id}"></span></p>
+    <p><strong>ユーザー:</strong> <span th:text="${inquiry.user.name}"></span></p>
+    <p><strong>件名:</strong> <span th:text="${inquiry.subject}"></span></p>
+    <p><strong>メッセージ:</strong> <span th:text="${inquiry.message}"></span></p>
+    <p><strong>ステータス:</strong> <span th:text="${inquiry.status}"></span></p>
+    <p><strong>返信:</strong> <span th:text="${inquiry.adminReply}"></span></p>
+
+    <!-- 返信フォーム -->
+    <form th:action="@{/admin/inquiries/{id}/reply(id=${inquiry.id})}" method="post">
+        <textarea name="adminReply" placeholder="返信内容"></textarea>
+        <button type="submit">返信して一覧へ戻る</button>
+    </form>
+
+    <!-- 対応済みにするボタン -->
+    <form th:action="@{/admin/inquiries/{id}/close(id=${inquiry.id})}" method="post" style="margin-top:10px;">
+        <button type="submit">対応済みにして一覧へ戻る</button>
+    </form>
+</body>
+</html>

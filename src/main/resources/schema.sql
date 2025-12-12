@@ -138,6 +138,21 @@ CREATE TABLE user_complaint (
     FOREIGN KEY (reporter_user_id) REFERENCES users(id)
 );
 
+CREATE TABLE IF NOT EXISTS inquiry (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    subject VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    status VARCHAR(20) DEFAULT 'OPEN',
+    admin_reply TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    replied_at TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+
+
+
 -- ========== INDEX ==========
 CREATE INDEX idx_users_banned ON users(banned);
 CREATE INDEX idx_users_banned_by ON users(banned_by_admin_id);
@@ -153,3 +168,4 @@ CREATE INDEX idx_fav_item_id ON favorite_item(item_id);
 CREATE INDEX idx_review_order_id ON review(order_id);
 CREATE INDEX idx_uc_reported ON user_complaint(reported_user_id);
 CREATE INDEX idx_uc_reporter ON user_complaint(reporter_user_id);
+

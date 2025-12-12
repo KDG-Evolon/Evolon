@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>管理者用 問い合わせ一覧</title>
+</head>
+<body>
+    <h1>問い合わせ一覧</h1>
+
+    <!-- フラッシュメッセージ -->
+    <div th:if="${success}">
+        <span th:text="${success == 'reply' ? '返信しました' : success == 'closed' ? '対応済みにしました' : ''}"></span>
+    </div>
+
+    <!-- 絞り込みボタン -->
+    <div style="margin-bottom:10px;">
+        <a th:href="@{/admin/inquiries}">全件表示</a>
+        <a th:href="@{/admin/inquiries(status='OPEN')}">未対応のみ</a>
+    </div>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>ユーザー</th>
+                <th>件名</th>
+                <th>ステータス</th>
+                <th>作成日</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="inquiry : ${inquiries}">
+                <td th:text="${inquiry.id}"></td>
+                <td th:text="${inquiry.user.name}"></td>
+                <td th:text="${inquiry.subject}"></td>
+                <td th:text="${inquiry.status}"></td>
+                <td th:text="${inquiry.createdAt}"></td>
+                <td>
+                    <a th:href="@{/admin/inquiries/{id}(id=${inquiry.id})}">詳細</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+	<!-- admin_inquiries.html の上部など -->
+	<div style="margin-bottom: 1em;">
+	    <a th:href="@{/admin/dashboard}" class="btn btn-primary">ダッシュボードに戻る</a>
+	</div>
+
+</body>
+</html>

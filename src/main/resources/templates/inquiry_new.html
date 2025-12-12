@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>問い合わせフォーム</title>
+</head>
+<body>
+
+<h2>運営への問い合わせ</h2>
+
+<form th:action="@{/inquiry/new}" method="post" th:object="${inquiry}">
+    
+    <label>件名：</label><br>
+    <input type="text" th:field="*{subject}" required><br><br>
+
+    <label>内容：</label><br>
+    <textarea th:field="*{message}" rows="5" required></textarea><br><br>
+
+    <button type="submit">送信</button>
+</form>
+
+</body>
+</html>
