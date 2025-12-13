@@ -20,4 +20,7 @@ public interface AppOrderRepository extends JpaRepository<AppOrder, Long> {
 
 	// PaymentIntent ID で注文を取得
 	Optional<AppOrder> findByPaymentIntentId(String paymentIntentId);
+
+	// 直近の注文を作成日時の降順で取得（上位5件）
+	List<AppOrder> findTop5ByOrderByCreatedAtDesc();
 }

@@ -41,16 +41,13 @@
                       method="post"
                       style="display:inline;">
 
-                    <button type="submit"
-                            class="button"
-                            th:classappend="${user.enabled ? ' danger' : ' secondary'}"
-                            th:text="${user.enabled ? '無効にする' : '有効にする'}"
-                            onclick="return confirm(
-                                '本当にこのユーザーを'
-                                + ([[${user.enabled}]] ? '無効' : '有効')
-                                + 'にしますか？'
-                            );">
-                    </button>
+					  <button type="submit"
+					          class="button"
+					          th:classappend="${user.enabled ? ' danger' : ' secondary'}"
+					          th:text="${user.enabled ? '無効にする' : '有効にする'}"
+					          th:onclick="|return confirm('本当にこのユーザーを${user.enabled ? '無効' : '有効'}にしますか？');|">
+					  </button>
+
                 </form>
             </td>
         </tr>

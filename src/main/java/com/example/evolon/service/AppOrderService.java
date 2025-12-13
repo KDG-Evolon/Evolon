@@ -164,4 +164,10 @@ public class AppOrderService {
 						&& order.getCreatedAt().toLocalDate().isBefore(endDate.plusDays(1)))
 				.collect(Collectors.groupingBy(AppOrder::getStatus, Collectors.counting()));
 	}
+
+	public List<AppOrder> getRecentOrders(int limit) {
+		// 今回は5固定でもOK。拡張余地として引数だけ残す
+		return appOrderRepository.findTop5ByOrderByCreatedAtDesc();
+	}
+
 }

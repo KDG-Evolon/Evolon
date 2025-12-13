@@ -34,4 +34,8 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
 	// 出品者ごとの商品一覧
 	List<Item> findBySeller(User seller);
+
+	// 最近の出品商品を取得（管理者ダッシュボード用）
+	List<Item> findTop5ByOrderByCreatedAtDesc();
+
 }

@@ -132,4 +132,10 @@ public class ItemService {
 			itemRepository.save(item);
 		});
 	}
+
+	// 管理者ダッシュボード用：最近の出品
+	public List<Item> getRecentItems() {
+		return itemRepository.findTop5ByOrderByCreatedAtDesc();
+	}
+
 }
