@@ -116,32 +116,41 @@ public class ItemController {
 
 	//商品詳細表示の GET エンドポイント
 	@GetMapping("/{id}")
-	public String showItemDetail(@PathVariable("id") Long id, @AuthenticationPrincipal UserDetails userDetails,
+	public String showItemDetail(
+			@PathVariable("id") Long id,
+			@AuthenticationPrincipal UserDetails userDetails,
 			Model model) {
-		//商品を ID で検索（存在しない場合の判定に Optional を使う）
-		Optional<Item> item = itemService.getItemById(id);
-		//見つからなければ一覧へリダイレクト
-		if (item.isEmpty()) {
-			//商品が見つからないため一覧へ
+		Optional<Item> itemOpt = itemService.getItemById(id);
+		if (itemOpt.isEmpty()) {
 			return "redirect:/items";
 		}
-		//商品本体をテンプレートへ渡す
-		model.addAttribute("item", item.get());
-		//当該商品のチャット履歴を昇順で取得して渡す
+
+		Item item = itemOpt.get();
+		model.addAttribute("item", item);
+
+		// チャット
 		model.addAttribute("chats", chatService.getChatMessagesByItem(id));
-		//出品者の平均評価があれば 1 桁小数で埋め込む
-		reviewService.getAverageRatingForSeller(item.get().getSeller())
-				.ifPresent(avg -> model.addAttribute("sellerAverageRating",
-						String.format("%.1f", avg)));
-		//ログイン済みであればお気に入り状態を判定して渡す
+
+		// 出品者評価
+		reviewService.getAverageRatingForSeller(item.getSeller())
+				.ifPresent(avg -> model.addAttribute("sellerAverageRating", String.format("%.1f", avg)));
+
+		boolean isOwner = false;
+		boolean isFavorited = false;
+
 		if (userDetails != null) {
-			//現在のログインユーザをメールで特定
 			User currentUser = userService.getUserByEmail(userDetails.getUsername())
 					.orElseThrow(() -> new RuntimeException("User not found"));
-			//お気に入り登録済みかどうかを判定
-			model.addAttribute("isFavorited", favoriteService.isFavorited(currentUser, id));
+
+			isOwner = item.getSeller() != null
+					&& item.getSeller().getId().equals(currentUser.getId());
+
+			isFavorited = favoriteService.isFavorited(currentUser, id);
 		}
-		//商品詳細テンプレートを返す
+
+		model.addAttribute("isOwner", isOwner);
+		model.addAttribute("isFavorited", isFavorited);
+
 		return "item_detail";
 	}
 
