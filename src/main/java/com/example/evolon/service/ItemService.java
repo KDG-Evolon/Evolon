@@ -102,14 +102,8 @@ public class ItemService {
 		itemRepository.findById(id).ifPresent(item -> {
 			//画像 URL がある場合は Cloudinary 側の削除を試みる
 			if (item.getImageUrl() != null) {
-				try {
-					//URL から public id を推定し削除
-					cloudinaryService.deleteFile(item.getImageUrl());
-				} catch (IOException e) {
-					//画像削除失敗は致命ではないためログ出力に留める
-					System.err.println("Failed to delete image from Cloudinary: " +
-							e.getMessage());
-				}
+				// 例外処理は CloudinaryService 側に任せる
+				cloudinaryService.deleteFile(item.getImageUrl());
 			}
 			//最後に DB から商品レコードを削除
 			itemRepository.deleteById(id);

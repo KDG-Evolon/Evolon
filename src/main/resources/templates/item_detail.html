@@ -19,41 +19,49 @@
     <div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}"></div>
     <div th:if="${successMessage}" class="success-message" th:text="${successMessage}"></div>
 
-    <!-- 商品詳細 -->
-    <div class="item-detail">
+	<!-- 商品詳細 -->
+	<div class="item-detail">
 
-        <!-- 商品画像 -->
-        <img class="item-image"
-             th:src="${item.imageUrl != null ? item.imageUrl : '/images/placeholder.png'}"
-             alt="商品画像">
+		<!-- 商品画像 -->
+		<img class="item-image"
+		     th:if="${item.imageUrl != null}"
+		     th:src="${item.imageUrl}"
+		     alt="商品画像">
 
-        <!-- 価格 -->
-        <p class="price">
-            価格：
-            <span th:text="'¥' + ${#numbers.formatDecimal(item.price,0,'COMMA',0,'POINT')}"></span>
-        </p>
+		<img class="item-image"
+		     th:if="${item.imageUrl == null}"
+		     th:src="@{/images/placeholder.png}"
+		     alt="商品画像">
 
-        <!-- 説明 -->
-        <p>説明：<span th:text="${item.description}"></span></p>
+		<!-- 価格 -->
+		<p class="price">
+			価格：
+			<span th:text="'¥' + ${#numbers.formatDecimal(item.price,0,'COMMA',0,'POINT')}"></span>
+		</p>
 
-        <!-- カテゴリ -->
-        <p>
-            カテゴリ：
-            <span th:text="${item.category != null ? item.category.name : '未分類'}"></span>
-        </p>
+		<!-- 説明 -->
+		<p>説明：<span th:text="${item.description}"></span></p>
 
-        <!-- 出品者 -->
-        <p>
-            出品者：
-            <span th:text="${item.seller.name}"></span>
-            <span th:if="${sellerAverageRating}">
-                （平均評価：
-                <span th:text="${sellerAverageRating}"></span>）
-            </span>
-        </p>
+		<!-- カテゴリ -->
+		<p>
+			カテゴリ：
+			<span th:text="${item.category != null ? item.category.name : '未分類'}"></span>
+		</p>
 
-        <!-- ステータス -->
-        <p>ステータス：<span th:text="${item.status}"></span></p>
+		<!-- 出品者 -->
+		<p>
+			出品者：
+			<span th:text="${item.seller.name}"></span>
+			<span th:if="${sellerAverageRating}">
+				（平均評価：
+				<span th:text="${sellerAverageRating}"></span>）
+			</span>
+		</p>
+
+		<!-- ステータス -->
+		<p>ステータス：<span th:text="${item.status}"></span></p>
+
+	</div>
 
         <!-- ボタン群 -->
         <div class="button-group">

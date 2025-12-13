@@ -57,28 +57,35 @@
 			<button type="submit" class="button">検索</button>
 		</form>
 		<!-- 商品カード一覧（レスポンシブグリッド） -->
-		<div class="item-grid">
+		<div＞ class="item-grid">
 			<!-- Page<Item>の content を回して 1 カードずつ描画 -->
 			<div class="item-card" th:each="item : ${items.content}">
 				<!-- 詳細画面へのリンク全体でカード化 -->
 				<a th:href="@{/items/{id}(id=${item.id})}">
-					<!-- 画像 URL があれば表示、なければプレースホルダ -->
-					<img th:src="${item.imageUrl != null ? item.imageUrl :'/images/placeholder.png'}" alt="商品画像">
+
+					<!-- 画像 URL があれば表示 -->
+					<img th:if="${item.imageUrl != null}" th:src="${item.imageUrl}" alt="商品画像">
+
+					<!-- 画像 URL がなければプレースホルダ -->
+					<img th:if="${item.imageUrl == null}" th:src="@{/images/placeholder.png}" alt="商品画像">
+
 					<!-- 商品名を見出しとして表示 -->
 					<h3 th:text="${item.name}"></h3>
+
 					<!-- 価格を通貨風に整形（¥＋カンマ区切り） -->
 					<p class="price" th:text="'¥' + ${#numbers.formatDecimal(item.price, 0,'COMMA', 0, 'POINT')}"></p>
+
 					<!-- 出品ステータス（出品中/売却済）を表示 -->
 					<p class="status" th:text="${item.status}"></p>
 				</a>
 			</div>
+
 			<!-- 検索結果が 0 件のときにメッセージ表示 -->
 			<div th:if="${#lists.isEmpty(items.content)}">
-				<!-- 商品なしのメッセージ -->
 				<p>商品が見つかりませんでした。</p>
 			</div>
 		</div>
-		<!-- ページネーション（前へ/ページ番号/次へ） -->
+	 <!-- ページネーション（前へ/ページ番号/次へ） -->
 		<div class="pagination">
 			<!-- 前ページが存在する場合のみリンク表示 -->
 			<a th:if="${items.hasPrevious()}" th:href="@{/items(page=${items.number - 1},
