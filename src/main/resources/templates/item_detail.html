@@ -66,6 +66,11 @@
                   onsubmit="return confirm('本当にこの商品を購入しますか？');">
 
                 <input type="hidden" name="itemId" th:value="${item.id}">
+				
+				<input type="hidden"
+					   th:name="${_csrf.parameterName}"
+					   th:value="${_csrf.token}">
+					   
                 <button type="submit" class="button">購入する</button>
             </form>
 
