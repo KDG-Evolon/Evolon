@@ -53,10 +53,9 @@ public class CloudinaryService {
 			Map uploadResult = cloudinary.uploader().upload(
 					file.getBytes(),
 					ObjectUtils.emptyMap());
-			return uploadResult.get("url").toString();
+			return uploadResult.get("secure_url").toString();
 		} catch (Exception e) {
-			System.err.println("Cloudinary upload failed: " + e.getMessage());
-			return null;
+			throw new RuntimeException("Cloudinary upload failed", e);
 		}
 	}
 
