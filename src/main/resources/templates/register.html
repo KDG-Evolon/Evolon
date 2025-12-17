@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>新規アカウント作成 - フリマアプリ</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+<div class="container">
+
+    <h1>フリマアプリ</h1>
+    <h2>新規アカウント作成</h2>
+
+    <form th:action="@{/register}" method="post">
+
+        <!-- エラーメッセージ -->
+        <div th:if="${error}" class="error-message" th:text="${error}"></div>
+
+		
+		<!-- 名前 -->
+		<p>
+		    <label for="name">ユーザー名</label><br>
+		    <input type="text"
+		           id="name"
+		           name="name"
+		           required>
+		</p>
+
+        <!-- メールアドレス -->
+        <p>
+            <label for="email">メールアドレス</label><br>
+            <input type="email"
+                   id="email"
+                   name="email"
+                   required>
+        </p>
+
+        <!-- パスワード -->
+        <p>
+            <label for="password">パスワード</label><br>
+            <input type="password"
+                   id="password"
+                   name="password"
+                   required>
+        </p>
+
+        <!-- 確認用パスワード -->
+        <p>
+            <label for="confirmPassword">パスワード（確認）</label><br>
+            <input type="password"
+                   id="confirmPassword"
+                   name="confirmPassword"
+                   required>
+        </p>
+
+        <div class="button-group">
+            <button type="submit" class="button">登録する</button>
+        </div>
+    </form>
+
+    <hr>
+
+    <p>
+        すでにアカウントをお持ちですか？
+        <a th:href="@{/login}">ログインはこちら</a>
+    </p>
+
+</div>
+</body>
+</html>

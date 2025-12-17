@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>登録完了 - フリマアプリ</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+<div class="container">
+
+    <h1>アカウント作成完了</h1>
+
+    <p class="success-message">
+        登録が完了しました。
+    </p>
+
+    <p>
+        ログイン画面から、登録したメールアドレスとパスワードでログインしてください。
+    </p>
+
+    <div class="button-group">
+        <a th:href="@{/login}" class="button">
+            ログイン画面へ
+        </a>
+    </div>
+
+</div>
+</body>
+</html>

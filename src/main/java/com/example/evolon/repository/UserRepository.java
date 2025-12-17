@@ -19,4 +19,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 			    WHERE r.seller.id = :userId
 			""")
 	Double averageRatingForUser(@Param("userId") Long userId);
+
+	Optional<User> findByResetToken(String token);
+
 }

@@ -23,7 +23,10 @@ CREATE TABLE users (
     banned BOOLEAN NOT NULL DEFAULT FALSE,
     ban_reason TEXT,
     banned_at TIMESTAMP,
-    banned_by_admin_id INT
+    banned_by_admin_id INT,
+    --パスワード再設定用
+    reset_token VARCHAR(255),
+    reset_token_expires_at TIMESTAMP
 );
 
 -- カテゴリ
