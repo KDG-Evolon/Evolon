@@ -14,12 +14,19 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-	// セキュリティ設定
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
 				.authorizeHttpRequests(authorize -> authorize
-						.requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/items/**")
+						.requestMatchers(
+								"/login",
+								"/register",
+								"/register/**",
+								"/password/**",
+								"/css/**",
+								"/js/**",
+								"/images/**",
+								"/items/**")
 						.permitAll()
 						.requestMatchers("/orders/stripe-webhook").permitAll()
 						.requestMatchers("/admin/**").hasRole("ADMIN")
@@ -38,7 +45,6 @@ public class SecurityConfig {
 		return http.build();
 	}
 
-	// パスワードエンコーダ
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();

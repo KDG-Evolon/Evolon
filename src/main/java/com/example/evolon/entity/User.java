@@ -13,33 +13,51 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity // JPA 管理対象のエンティティ
-@Table(name = "users") // DB テーブル名
-@Data // Getter/Setter, toString など自動生成
+@Entity
+@Table(name = "users")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
-	@Id // 主キー
-	@GeneratedValue(strategy = GenerationType.IDENTITY) // Auto Increment
-	private Long id; // ユーザーID
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
 	@Column(nullable = false)
-	private String name; // ユーザー名（表示名）
+	private String name;
+
 	@Column(unique = true, nullable = false)
-	private String email; // ログイン ID として使用するメールアドレス
+	private String email;
+
 	@Column(nullable = false)
-	private String password; // パスワード（暗号化保存）
+	private String password;
+
 	@Column(nullable = false)
-	private String role; // ロール（USER / ADMIN）
+	private String role;
+
 	@Column(name = "line_notify_token")
-	private String lineNotifyToken; // LINE 通知用トークン（任意）
+	private String lineNotifyToken;
+
 	@Column(nullable = false)
-	private boolean enabled = true; // アカウント有効フラグ（false = 退会/停止）
+	private boolean enabled = true;
+
 	@Column(nullable = false)
-	private boolean banned = false; // 強制 BAN フラグ（true=停止）
+	private boolean banned = false;
+
 	@Column(name = "ban_reason")
-	private String banReason; // BAN 理由
+	private String banReason;
+
 	@Column(name = "banned_at")
-	private LocalDateTime bannedAt; // BAN 日時
+	private LocalDateTime bannedAt;
+
 	@Column(name = "banned_by_admin_id")
-	private Integer bannedByAdminId; // BAN 実行管理者の ID
+	private Integer bannedByAdminId;
+
+	// ★★★ 追加 ★★★
+	@Column(name = "reset_token")
+	private String resetToken;
+
+	@Column(name = "reset_token_expires_at")
+	private LocalDateTime resetTokenExpiresAt;
 }
