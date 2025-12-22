@@ -5,7 +5,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>管理者: 商品管理 - フリマアプリ</title>
+    <title>管理者: 商品管理</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 
@@ -14,6 +14,12 @@
 
     <h1>管理者: 商品管理</h1>
     <p>システム内の全ての商品を管理します。</p>
+
+    <!-- 検索 -->
+    <form method="get" th:action="@{/admin/items}" class="search-form">
+        <input type="text" name="keyword" placeholder="商品名で検索">
+        <button type="submit">検索</button>
+    </form>
 
     <table>
         <thead>
@@ -32,7 +38,12 @@
         <!-- 商品一覧 -->
         <tr th:each="item : ${items}">
             <td th:text="${item.id}"></td>
-            <td th:text="${item.name}"></td>
+
+            <td>
+                <a th:href="@{/admin/items/{id}(id=${item.id})}"
+                   th:text="${item.name}"></a>
+            </td>
+
             <td th:text="${item.seller.name}"></td>
 
             <td th:text="'¥' + ${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')}"></td>
@@ -41,17 +52,48 @@
 
             <td th:text="${item.status}"></td>
 
-            <td>
-                <form th:action="@{/admin/items/{id}/delete(id=${item.id})}"
-                      method="post"
-                      style="display:inline;">
-                    <button type="submit"
-                            class="button danger"
-                            onclick="return confirm('本当にこの商品を削除しますか？');">
-                        削除
-                    </button>
-                </form>
-            </td>
+			<td>
+			    <a th:href="@{/admin/items/{id}(id=${item.id})}"
+			       class="button secondary">
+			        詳細
+			    </a>
+
+			    <!-- 出品中 → 非公開 -->
+			    <form th:if="${item.status == '出品中'}"
+			          th:action="@{/admin/items/{id}/unpublish(id=${item.id})}"
+			          method="post"
+			          style="display:inline;">
+			        <button type="submit"
+			                class="button secondary"
+			                onclick="return confirm('この商品を非公開にしますか？');">
+			            非公開
+			        </button>
+			    </form>
+
+			    <!-- 非公開 → 再公開 -->
+			    <form th:if="${item.status == '非公開'}"
+			          th:action="@{/admin/items/{id}/publish(id=${item.id})}"
+			          method="post"
+			          style="display:inline;">
+			        <button type="submit"
+			                class="button primary"
+			                onclick="return confirm('この商品を再公開しますか？');">
+			            再公開
+			        </button>
+			    </form>
+
+			    <!-- 削除 -->
+			    <form th:action="@{/admin/items/{id}/delete(id=${item.id})}"
+			          method="post"
+			          style="display:inline;">
+			        <button type="submit"
+			                class="button danger"
+			                onclick="return confirm('本当に削除しますか？');">
+			            削除
+			        </button>
+			    </form>
+			</td>
+
         </tr>
 
         <!-- 商品なし -->
@@ -63,7 +105,9 @@
 
     <div class="button-group">
         <a th:href="@{/admin/dashboard}"
-           class="button secondary">管理者ダッシュボードに戻る</a>
+           class="button secondary">
+            管理者ダッシュボードに戻る
+        </a>
     </div>
 
 </div>

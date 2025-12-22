@@ -83,6 +83,10 @@ public class ItemService {
 		return itemRepository.findById(id);
 	}
 
+	public Optional<Item> findById(Long id) {
+		return itemRepository.findById(id);
+	}
+
 	//商品保存：必要なら画像を Cloudinary へアップロードして URL を保存
 	public Item saveItem(Item item, MultipartFile imageFile) throws IOException {
 		//画像が添付されている場合にのみアップロード処理を実行
@@ -130,6 +134,22 @@ public class ItemService {
 	// 管理者ダッシュボード用：最近の出品
 	public List<Item> getRecentItems() {
 		return itemRepository.findTop5ByOrderByCreatedAtDesc();
+	}
+
+	// 商品を非公開にする
+	public void unpublishItem(Long itemId) {
+		itemRepository.findById(itemId).ifPresent(item -> {
+			item.setStatus("非公開");
+			itemRepository.save(item);
+		});
+	}
+
+	// 商品を再公開する
+	public void publishItem(Long itemId) {
+		itemRepository.findById(itemId).ifPresent(item -> {
+			item.setStatus("出品中");
+			itemRepository.save(item);
+		});
 	}
 
 }

@@ -57,6 +57,20 @@ public class AdminController {
 		return "redirect:/admin/items?success=deleted";
 	}
 
+	// 非公開
+	@PostMapping("/items/{id}/unpublish")
+	public String unpublishItem(@PathVariable Long id) {
+		itemService.unpublishItem(id);
+		return "redirect:/admin/items";
+	}
+
+	// 再公開
+	@PostMapping("/items/{id}/publish")
+	public String publishItem(@PathVariable Long id) {
+		itemService.publishItem(id);
+		return "redirect:/admin/items";
+	}
+
 	//売上統計を表示する画面用ハンドラ（GET /admin/statistics）
 	@GetMapping("/statistics")
 	public String showStatistics(
@@ -134,4 +148,20 @@ public class AdminController {
 							.append(",").append(String.valueOf(count)).append("\n"));
 		}
 	}
+
+	// 管理者用：商品詳細画面
+	@GetMapping("/items/{id}")
+	public String showItemDetail(@PathVariable("id") Long id, Model model) {
+
+		var item = itemService.findById(id)
+				.orElseThrow(() -> new IllegalArgumentException("商品が存在しません"));
+
+		model.addAttribute("item", item);
+
+		// 課題用：仮の違反理由（DB持たなくてOK）
+		model.addAttribute("violationReason", "ガイドライン違反の可能性あり");
+
+		return "admin_item_detail";
+	}
+
 }
