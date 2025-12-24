@@ -61,12 +61,26 @@ CREATE TABLE app_order (
     item_id INT NOT NULL,
     buyer_id INT NOT NULL,
     price NUMERIC(10,2) NOT NULL,
+
+    -- 表示用（互換）
     status VARCHAR(20) DEFAULT '購入済',
+
+    -- 正式ステータス
+    order_status VARCHAR(30) NOT NULL DEFAULT 'PAYMENT_PENDING',
+
     payment_intent_id VARCHAR(128),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    -- 状態遷移用
+    cancelled_at TIMESTAMP,
+    cancelled_by VARCHAR(20),
+    shipped_at TIMESTAMP,
+    delivered_at TIMESTAMP,
+
     FOREIGN KEY (item_id) REFERENCES item(id),
     FOREIGN KEY (buyer_id) REFERENCES users(id)
 );
+
 
 -- チャット
 CREATE TABLE chat (

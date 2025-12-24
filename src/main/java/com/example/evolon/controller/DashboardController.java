@@ -12,21 +12,15 @@ import com.example.evolon.service.AppOrderService;
 import com.example.evolon.service.ItemService;
 
 /**
- * ダッシュボード画面を表示するコントローラ
+ * 管理者ダッシュボード表示用コントローラ
  */
 @Controller
 public class DashboardController {
 
-	/** ユーザー情報取得用 */
 	private final UserRepository userRepository;
-
-	/** 商品情報取得用 */
 	private final ItemService itemService;
-
-	/** 注文情報取得用 */
 	private final AppOrderService appOrderService;
 
-	/** コンストラクタインジェクション */
 	public DashboardController(
 			UserRepository userRepository,
 			ItemService itemService,
@@ -49,9 +43,12 @@ public class DashboardController {
 				.findByEmailIgnoreCase(userDetails.getUsername())
 				.orElseThrow(() -> new RuntimeException("User not found"));
 
-		// 管理者の場合
+		// 管理者のみ表示
 		if ("ADMIN".equals(currentUser.getRole())) {
 
+			model.addAttribute("currentUser", currentUser);
+
+			// 最近の商品・注文（管理用）
 			model.addAttribute("recentItems", itemService.getAllItems());
 			model.addAttribute("recentOrders", appOrderService.getAllOrders());
 

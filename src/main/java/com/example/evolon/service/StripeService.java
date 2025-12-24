@@ -18,36 +18,41 @@ public class StripeService {
 		Stripe.apiKey = secretKey;
 	}
 
-	/**
-	 * 支払い意図 (PaymentIntent) の作成
-	 */
-	public PaymentIntent createPaymentIntent(BigDecimal amount, String currency, String description)
-			throws StripeException {
+	public PaymentIntent createPaymentIntent(
+			BigDecimal amount,
+			String currency,
+			String description) throws StripeException {
 
-		// Stripe 金額は最小単位の整数（JPY は小数なし）
 		long value = "jpy".equalsIgnoreCase(currency)
 				? amount.longValue()
-				: amount.multiply(new BigDecimal(100)).longValue();
+				: amount.multiply(BigDecimal.valueOf(100)).longValue();
 
-		// パラメータ構築
 		PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
 				.setAmount(value)
 				.setCurrency(currency)
 				.setDescription(description)
 				.setAutomaticPaymentMethods(
-						PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
+						PaymentIntentCreateParams.AutomaticPaymentMethods
+								.builder()
 								.setEnabled(true)
 								.build())
 				.build();
 
-		// PaymentIntent を作成
 		return PaymentIntent.create(params);
 	}
 
-	/**
-	 * 既存の PaymentIntent を取得
-	 */
-	public PaymentIntent retrievePaymentIntent(String paymentIntentId) throws StripeException {
+	/** 決済が成功しているか */
+	public boolean isPaymentSucceeded(String paymentIntentId)
+			throws StripeException {
+
+		PaymentIntent paymentIntent = PaymentIntent.retrieve(paymentIntentId);
+		return "succeeded".equals(paymentIntent.getStatus());
+	}
+
+	/** 生の PaymentIntent が必要な場合用 */
+	public PaymentIntent getPaymentIntent(String paymentIntentId)
+			throws StripeException {
+
 		return PaymentIntent.retrieve(paymentIntentId);
 	}
 }

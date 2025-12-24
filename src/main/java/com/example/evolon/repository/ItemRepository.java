@@ -14,28 +14,48 @@ import org.springframework.stereotype.Repository;
 
 // エンティティのインポート
 import com.example.evolon.entity.Item;
+import com.example.evolon.entity.ItemStatus;
 import com.example.evolon.entity.User;
 
 // Item エンティティのリポジトリ
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long> {
+
+	/* =========================
+	 * 公開中（出品中）検索
+	 * ========================= */
+
 	// 名前の部分一致 + ステータスでページング検索（大文字小文字無視）
-	Page<Item> findByNameContainingIgnoreCaseAndStatus(String name, String status, Pageable pageable);
+	Page<Item> findByNameContainingIgnoreCaseAndStatus(
+			String name,
+			ItemStatus status,
+			Pageable pageable);
 
 	// カテゴリ ID + ステータスでページング検索
-	Page<Item> findByCategoryIdAndStatus(Long categoryId, String status, Pageable pageable);
+	Page<Item> findByCategoryIdAndStatus(
+			Long categoryId,
+			ItemStatus status,
+			Pageable pageable);
 
 	// 名前の部分一致 + カテゴリ ID + ステータスでページング検索
-	Page<Item> findByNameContainingIgnoreCaseAndCategoryIdAndStatus(String name, Long categoryId, String status,
+	Page<Item> findByNameContainingIgnoreCaseAndCategoryIdAndStatus(
+			String name,
+			Long categoryId,
+			ItemStatus status,
 			Pageable pageable);
 
 	// ステータスのみでページング取得（公開中一覧など）
-	Page<Item> findByStatus(String status, Pageable pageable);
+	Page<Item> findByStatus(
+			ItemStatus status,
+			Pageable pageable);
+
+	/* =========================
+	 * その他
+	 * ========================= */
 
 	// 出品者ごとの商品一覧
 	List<Item> findBySeller(User seller);
 
 	// 最近の出品商品を取得（管理者ダッシュボード用）
 	List<Item> findTop5ByOrderByCreatedAtDesc();
-
 }

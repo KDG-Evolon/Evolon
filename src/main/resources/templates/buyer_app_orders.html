@@ -26,19 +26,22 @@
         </thead>
 
         <tbody>
-        <!-- 購入履歴がある場合 -->
-        <tr th:each="order : ${myOrders}">
-            <td th:text="${order.item.name}"></td>
-            <td th:text="${order.item.seller.name}"></td>
-            <td th:text="'¥' + ${#numbers.formatDecimal(order.price, 0, 'COMMA', 0, 'POINT')}"></td>
-            <td th:text="${order.status}"></td>
-        </tr>
+			<tbody>
 
-        <!-- 購入履歴が空の場合 -->
-        <tr th:if="${#lists.isEmpty(myOrders)}">
-            <td colspan="4">購入した商品はありません。</td>
-        </tr>
-        </tbody>
+			    <!-- 購入履歴がある場合 -->
+			    <tr th:each="order : ${myOrders}">
+			        <td th:text="${order.item.name}"></td>
+			        <td th:text="${order.item.seller.name}"></td>
+			        <td th:text="'¥' + ${#numbers.formatDecimal(order.price, 0, 'COMMA', 0, 'POINT')}"></td>
+			        <td th:text="${order.orderStatus.label}"></td>
+			    </tr>
+
+			    <!-- 購入履歴が空の場合 -->
+			    <tr th:if="${#lists.isEmpty(myOrders)}">
+			        <td colspan="4">購入した商品はありません。</td>
+			    </tr>
+
+			</tbody>
     </table>
 
     <div class="button-group">

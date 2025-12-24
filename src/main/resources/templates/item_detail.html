@@ -19,92 +19,94 @@
     <div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}"></div>
     <div th:if="${successMessage}" class="success-message" th:text="${successMessage}"></div>
 
-	<!-- 商品詳細 -->
-	<div class="item-detail">
+    <!-- 商品詳細 -->
+    <div class="item-detail">
 
-		<!-- 商品画像 -->
-		<img class="item-image"
-		     th:if="${item.imageUrl != null}"
-		     th:src="${item.imageUrl}"
-		     alt="商品画像">
+        <!-- 商品画像 -->
+        <img class="item-image"
+             th:if="${item.imageUrl != null}"
+             th:src="${item.imageUrl}"
+             alt="商品画像">
 
-		<img class="item-image"
-		     th:if="${item.imageUrl == null}"
-		     th:src="@{/images/placeholder.png}"
-		     alt="商品画像">
+        <img class="item-image"
+             th:if="${item.imageUrl == null}"
+             th:src="@{/images/placeholder.png}"
+             alt="商品画像">
 
-		<!-- 価格 -->
-		<p class="price">
-			価格：
-			<span th:text="'¥' + ${#numbers.formatDecimal(item.price,0,'COMMA',0,'POINT')}"></span>
-		</p>
+        <!-- 価格 -->
+        <p class="price">
+            価格：
+            <span th:text="'¥' + ${#numbers.formatDecimal(item.price,0,'COMMA',0,'POINT')}"></span>
+        </p>
 
-		<!-- 説明 -->
-		<p>説明：<span th:text="${item.description}"></span></p>
+        <!-- 説明 -->
+        <p>説明：<span th:text="${item.description}"></span></p>
 
-		<!-- カテゴリ -->
-		<p>
-			カテゴリ：
-			<span th:text="${item.category != null ? item.category.name : '未分類'}"></span>
-		</p>
+        <!-- カテゴリ -->
+        <p>
+            カテゴリ：
+            <span th:text="${item.category != null ? item.category.name : '未分類'}"></span>
+        </p>
 
-		<!-- 出品者 -->
-		<p>
-			出品者：
-			<span th:text="${item.seller.name}"></span>
-			<span th:if="${sellerAverageRating}">
-				（平均評価：
-				<span th:text="${sellerAverageRating}"></span>）
-			</span>
-		</p>
+        <!-- 出品者 -->
+        <p>
+            出品者：
+            <span th:text="${item.seller.name}"></span>
+            <span th:if="${sellerAverageRating}">
+                （平均評価：
+                <span th:text="${sellerAverageRating}"></span>）
+            </span>
+        </p>
 
-		<!-- ステータス -->
-		<p>ステータス：<span th:text="${item.status}"></span></p>
+        <!-- ステータス（★修正） -->
+        <p>
+            ステータス：
+            <span th:text="${item.status.label}"></span>
+        </p>
 
-	</div>
+    </div>
 
-        <!-- ボタン群 -->
-        <div class="button-group">
+    <!-- ボタン群 -->
+    <div class="button-group">
 
-            <!-- 購入ボタン -->
-            <form sec:authorize="isAuthenticated()"
-                  th:if="${item.status == '出品中' and !isOwner}"
-                  th:action="@{/orders/initiate-purchase}"
+        <!-- 購入ボタン（★修正） -->
+        <form sec:authorize="isAuthenticated()"
+              th:if="${item.status.name() == 'SELLING' and !isOwner}"
+              th:action="@{/orders/initiate}"
+              method="post"
+              onsubmit="return confirm('本当にこの商品を購入しますか？');">
+
+            <input type="hidden" name="itemId" th:value="${item.id}">
+
+            <input type="hidden"
+                   th:name="${_csrf.parameterName}"
+                   th:value="${_csrf.token}">
+
+            <button type="submit" class="button">購入する</button>
+        </form>
+
+        <!-- チャット -->
+        <a th:href="@{/chat/{itemId}(itemId=${item.id})}"
+           class="button secondary">
+            チャットで質問 / 交渉
+        </a>
+
+        <!-- お気に入り -->
+        <div sec:authorize="isAuthenticated()" th:if="${!isOwner}">
+
+            <form th:if="${isFavorited}"
+                  th:action="@{/items/{id}/unfavorite(id=${item.id})}"
                   method="post"
-                  onsubmit="return confirm('本当にこの商品を購入しますか？');">
-
-                <input type="hidden" name="itemId" th:value="${item.id}">
-				
-				<input type="hidden"
-					   th:name="${_csrf.parameterName}"
-					   th:value="${_csrf.token}">
-					   
-                <button type="submit" class="button">購入する</button>
+                  style="display:inline;">
+                <button type="submit" class="button danger">お気に入り解除</button>
             </form>
 
-            <!-- チャット -->
-            <a th:href="@{/chat/{itemId}(itemId=${item.id})}"
-               class="button secondary">
-                チャットで質問 / 交渉
-            </a>
-
-            <!-- お気に入り -->
-            <div sec:authorize="isAuthenticated()" th:if="${!isOwner}">
-
-                <form th:if="${isFavorited}"
-                      th:action="@{/items/{id}/unfavorite(id=${item.id})}"
-                      method="post"
-                      style="display:inline;">
-                    <button type="submit" class="button danger">お気に入り解除</button>
-                </form>
-
-                <form th:unless="${isFavorited}"
-                      th:action="@{/items/{id}/favorite(id=${item.id})}"
-                      method="post"
-                      style="display:inline;">
-                    <button type="submit" class="button">お気に入りに追加</button>
-                </form>
-            </div>
+            <form th:unless="${isFavorited}"
+                  th:action="@{/items/{id}/favorite(id=${item.id})}"
+                  method="post"
+                  style="display:inline;">
+                <button type="submit" class="button">お気に入りに追加</button>
+            </form>
         </div>
     </div>
 

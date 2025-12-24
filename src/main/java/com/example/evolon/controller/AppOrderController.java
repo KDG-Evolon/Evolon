@@ -6,134 +6,106 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.evolon.entity.User;
 import com.example.evolon.service.AppOrderService;
-import com.example.evolon.service.ItemService;
 import com.example.evolon.service.UserService;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 
-/**
- * 注文・決済（Stripe 連携含む）に関する画面制御コントローラー
- */
 @Controller
 @RequestMapping("/orders")
 public class AppOrderController {
 
 	private final AppOrderService appOrderService;
 	private final UserService userService;
-	private final ItemService itemService;
 
 	@Value("${stripe.public-key}")
 	private String stripePublicKey;
 
 	public AppOrderController(
 			AppOrderService appOrderService,
-			UserService userService,
-			ItemService itemService) {
+			UserService userService) {
 		this.appOrderService = appOrderService;
 		this.userService = userService;
-		this.itemService = itemService;
 	}
 
-	/** 購入開始 */
-	@PostMapping("/initiate-purchase")
+	/* =====================
+	 * 購入開始（仮注文作成）
+	 * ===================== */
+	@PostMapping("/initiate")
 	public String initiatePurchase(
 			@AuthenticationPrincipal UserDetails userDetails,
 			@RequestParam("itemId") Long itemId,
 			RedirectAttributes redirectAttributes) {
 
 		User buyer = userService.getUserByEmail(userDetails.getUsername())
-				.orElseThrow(() -> new RuntimeException("Buyer not found"));
+				.orElseThrow(() -> new RuntimeException("User not found"));
 
 		try {
 			PaymentIntent paymentIntent = appOrderService.initiatePurchase(itemId, buyer);
 
+			return "redirect:/orders/confirm"
+					+ "?clientSecret=" + paymentIntent.getClientSecret()
+					+ "&paymentIntentId=" + paymentIntent.getId();
+
+		} catch (StripeException | IllegalStateException e) {
+
 			redirectAttributes.addFlashAttribute(
-					"clientSecret",
-					paymentIntent.getClientSecret());
-			redirectAttributes.addFlashAttribute("itemId", itemId);
+					"errorMessage",
+					e.getMessage());
 
-			return "redirect:/orders/confirm-payment";
-
-		} catch (IllegalStateException | IllegalArgumentException | StripeException e) {
-			redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
 			return "redirect:/items/" + itemId;
 		}
 	}
 
-	/** 決済確認画面 */
-	@GetMapping("/confirm-payment")
+	/* =====================
+	 * Stripe 決済画面
+	 * ===================== */
+	@GetMapping("/confirm")
 	public String confirmPayment(
-			@ModelAttribute("clientSecret") String clientSecret,
-			@ModelAttribute("itemId") Long itemId,
+			@RequestParam(value = "clientSecret", required = false) String clientSecret,
+			@RequestParam(value = "paymentIntentId", required = false) String paymentIntentId,
 			Model model) {
 
-		if (clientSecret == null || itemId == null) {
+		if (clientSecret == null || paymentIntentId == null) {
 			return "redirect:/items";
 		}
 
 		model.addAttribute("clientSecret", clientSecret);
-		model.addAttribute("itemId", itemId);
+		model.addAttribute("paymentIntentId", paymentIntentId);
 		model.addAttribute("stripePublicKey", stripePublicKey);
 
 		return "payment_confirmation";
 	}
 
-	/** 決済完了 */
+	/* =====================
+	 * 決済完了（注文確定）
+	 * ===================== */
 	@GetMapping("/complete-purchase")
 	public String completePurchase(
-			@RequestParam("paymentIntentId") String paymentIntentId,
+			@RequestParam(value = "payment_intent", required = false) String paymentIntentId,
+			@RequestParam(value = "redirect_status", required = false) String redirectStatus,
 			RedirectAttributes redirectAttributes) {
 
 		try {
 			appOrderService.completePurchase(paymentIntentId);
+
 			redirectAttributes.addFlashAttribute(
 					"successMessage", "商品を購入しました！");
 
-			return appOrderService.getLatestCompletedOrderId()
-					.map(id -> "redirect:/reviews/new/" + id)
-					.orElse("redirect:/my-page/orders");
+			return "redirect:/my-page/orders";
 
-		} catch (StripeException | IllegalStateException e) {
+		} catch (Exception e) {
+
 			redirectAttributes.addFlashAttribute(
-					"errorMessage",
-					"決済処理中にエラーが発生しました: " + e.getMessage());
+					"errorMessage", "決済処理に失敗しました");
+
 			return "redirect:/items";
 		}
-	}
-
-	/** Webhook */
-	@PostMapping("/stripe-webhook")
-	public void handleStripeWebhook(
-			@RequestBody String payload,
-			@RequestHeader("Stripe-Signature") String sigHeader) {
-		System.out.println("Received Stripe Webhook: " + payload);
-	}
-
-	/** 発送処理 */
-	@PostMapping("/{id}/ship")
-	public String shipOrder(
-			@PathVariable Long id,
-			RedirectAttributes redirectAttributes) {
-
-		try {
-			appOrderService.markOrderAsShipped(id);
-			redirectAttributes.addFlashAttribute(
-					"successMessage", "商品を発送済みにしました。");
-		} catch (IllegalArgumentException e) {
-			redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-		}
-
-		return "redirect:/my-page/sales";
 	}
 }

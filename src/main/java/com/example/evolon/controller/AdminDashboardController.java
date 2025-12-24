@@ -33,7 +33,7 @@ public class AdminDashboardController {
 
 		// 最近の注文（Serviceにメソッドがあれば差し替え）
 		model.addAttribute("recentOrders",
-				appOrderService.getRecentOrders(5));
+				appOrderService.getRecentOrders());
 
 		return "admin_dashboard";
 	}

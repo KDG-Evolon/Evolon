@@ -13,18 +13,20 @@
     <p>以下の内容で決済を完了します。</p>
 
     <!-- Stripe Elements 描画領域 -->
-    <div id="payment-element"></div>
+    <form id="payment-form">
+        <div id="payment-element"></div>
 
-    <!-- 決済ボタン -->
-    <button id="submit" class="button">決済を完了する</button>
+        <!-- エラーメッセージ -->
+        <div id="payment-message" class="error-message"></div>
 
-    <!-- エラーメッセージ -->
-    <div id="payment-message" class="error-message"></div>
+        <!-- 決済ボタン -->
+        <button id="submit" class="button">決済を完了する</button>
+    </form>
 
     <!-- 商品詳細へ戻る -->
     <div class="button-group">
-        <a th:href="@{/items/{id}(id=${itemId})}" class="button secondary">
-            商品詳細に戻る
+        <a th:href="@{/items}" class="button secondary">
+            商品一覧に戻る
         </a>
     </div>
 </div>
@@ -33,7 +35,6 @@
     /* サーバーから受け取った値 */
     const stripePublicKey = [[${stripePublicKey}]];
     const clientSecret = [[${clientSecret}]];
-    const itemId = [[${itemId}]];
 
     /* Stripe 初期化 */
     const stripe = Stripe(stripePublicKey);
@@ -43,21 +44,19 @@
     const paymentElement = elements.create("payment");
     paymentElement.mount("#payment-element");
 
-    const submitButton = document.getElementById("submit");
+    const form = document.getElementById("payment-form");
     const messageContainer = document.getElementById("payment-message");
 
-    submitButton.addEventListener("click", async (e) => {
+    form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
         const { error } = await stripe.confirmPayment({
             elements,
             confirmParams: {
-                return_url:
-                    window.location.origin +
-                    "/orders/complete-purchase?paymentIntentId=" +
-                    clientSecret.split("_secret")[0],
-            },
-            redirect: "if_required",
+                // ★★★ ここが最重要：URLだけ指定 ★★★
+                return_url: window.location.origin + "/orders/complete-purchase"
+            }
+            // redirect オプションは指定しない
         });
 
         if (error) {
@@ -66,13 +65,8 @@
             } else {
                 messageContainer.textContent = "予期せぬエラーが発生しました。";
             }
-        } else {
-            // リダイレクト不要で成功した場合
-            const paymentIntentId = clientSecret.split("_secret")[0];
-            window.location.href =
-                "/orders/complete-purchase?paymentIntentId=" +
-                paymentIntentId;
         }
+        // 成功時は Stripe が自動で return_url にリダイレクトする
     });
 </script>
 </body>
