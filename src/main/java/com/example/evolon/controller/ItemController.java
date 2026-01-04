@@ -20,6 +20,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.evolon.domain.enums.ShippingDuration;
 import com.example.evolon.domain.enums.ShippingFeeBurden;
+import com.example.evolon.domain.enums.ShippingMethod;
 import com.example.evolon.domain.enums.ShippingRegion;
 import com.example.evolon.entity.Category;
 import com.example.evolon.entity.Item;
@@ -60,13 +61,29 @@ public class ItemController {
 	// 商品一覧表示
 	// -------------------------------
 	@GetMapping
-	public String listItems(@RequestParam(value = "keyword", required = false) String keyword,
+	public String listItems(
+			@RequestParam(value = "keyword", required = false) String keyword,
 			@RequestParam(value = "categoryId", required = false) Long categoryId,
 			@RequestParam(value = "page", defaultValue = "0") int page,
 			@RequestParam(value = "size", defaultValue = "10") int size,
 			Model model) {
 
 		Page<Item> items = itemService.searchItems(keyword, categoryId, page, size);
+
+		// ★ デバッグ用ログ（ここが超重要）
+		System.out.println("=== 商品一覧デバッグ ===");
+		System.out.println("keyword = " + keyword);
+		System.out.println("categoryId = " + categoryId);
+		System.out.println("取得件数 = " + items.getTotalElements());
+
+		items.getContent().forEach(item -> {
+			System.out.println(
+					"itemId=" + item.getId()
+							+ ", name=" + item.getName()
+							+ ", seller=" + (item.getSeller() != null ? item.getSeller().getId() : "null"));
+		});
+		System.out.println("======================");
+
 		List<Category> categories = categoryService.getAllCategories();
 
 		model.addAttribute("items", items);
@@ -79,7 +96,8 @@ public class ItemController {
 	// 商品詳細表示
 	// -------------------------------
 	@GetMapping("/{id}")
-	public String showItemDetail(@PathVariable("id") Long id,
+	public String showItemDetail(
+			@PathVariable("id") Long id,
 			@AuthenticationPrincipal UserDetails userDetails,
 			Model model) {
 
@@ -90,6 +108,8 @@ public class ItemController {
 
 		Item item = itemOpt.get();
 		model.addAttribute("item", item);
+
+		// チャット一覧
 		model.addAttribute("chats", chatService.getChatMessagesByItem(id));
 
 		// 出品者評価
@@ -99,16 +119,25 @@ public class ItemController {
 		boolean isOwner = false;
 		boolean isFavorited = false;
 
+		// ★★★ 追加ここから ★★★
+		String currentUserEmail = null;
+
 		if (userDetails != null) {
 			User currentUser = userService.getUserByEmail(userDetails.getUsername())
 					.orElseThrow(() -> new RuntimeException("User not found"));
 
-			isOwner = item.getSeller() != null && item.getSeller().getId().equals(currentUser.getId());
+			currentUserEmail = currentUser.getEmail(); // ← チャット用
+			isOwner = item.getSeller() != null
+					&& item.getSeller().getId().equals(currentUser.getId());
+
 			isFavorited = favoriteService.isFavorited(currentUser, id);
 		}
 
+		// View に渡す
 		model.addAttribute("isOwner", isOwner);
 		model.addAttribute("isFavorited", isFavorited);
+		model.addAttribute("currentUserEmail", currentUserEmail);
+		// ★★★ 追加ここまで ★★★
 
 		return "item_detail";
 	}
@@ -123,6 +152,7 @@ public class ItemController {
 		model.addAttribute("shippingDurations", ShippingDuration.values());
 		model.addAttribute("shippingFeeBurdens", ShippingFeeBurden.values());
 		model.addAttribute("shippingRegions", ShippingRegion.values());
+		model.addAttribute("shippingMethods", ShippingMethod.values());
 		return "item_form";
 	}
 
@@ -130,7 +160,8 @@ public class ItemController {
 	// 商品登録（POST）
 	// -------------------------------
 	@PostMapping
-	public String addItem(@AuthenticationPrincipal UserDetails userDetails,
+	public String addItem(
+			@AuthenticationPrincipal UserDetails userDetails,
 			@RequestParam("name") String name,
 			@RequestParam("description") String description,
 			@RequestParam("price") BigDecimal price,
@@ -138,16 +169,22 @@ public class ItemController {
 			@RequestParam("shippingDuration") ShippingDuration shippingDuration,
 			@RequestParam("shippingFeeBurden") ShippingFeeBurden shippingFeeBurden,
 			@RequestParam("shippingRegion") ShippingRegion shippingRegion,
+			@RequestParam("shippingMethod") ShippingMethod shippingMethod,
 			@RequestParam(value = "image", required = false) MultipartFile imageFile,
 			RedirectAttributes redirectAttributes) {
 
+		// 出品者取得
 		User seller = userService.getUserByEmail(userDetails.getUsername())
 				.orElseThrow(() -> new RuntimeException("Seller not found"));
 
+		// カテゴリ取得
 		Category category = categoryService.getCategoryById(categoryId)
 				.orElseThrow(() -> new IllegalArgumentException("Category not found"));
 
+		// ★ item は1回だけ new する
 		Item item = new Item();
+
+		// 基本情報
 		item.setSeller(seller);
 		item.setName(name);
 		item.setDescription(description);
@@ -156,12 +193,18 @@ public class ItemController {
 		item.setShippingDuration(shippingDuration);
 		item.setShippingFeeBurden(shippingFeeBurden);
 		item.setShippingRegion(shippingRegion);
+		item.setShippingMethod(shippingMethod);
+
+		// ★ 一覧表示に必要なステータス
+		item.setStatus("出品中");
 
 		try {
 			itemService.saveItem(item, imageFile);
 			redirectAttributes.addFlashAttribute("successMessage", "商品を出品しました！");
 		} catch (IOException e) {
-			redirectAttributes.addFlashAttribute("errorMessage", "画像のアップロードに失敗しました: " + e.getMessage());
+			redirectAttributes.addFlashAttribute(
+					"errorMessage",
+					"画像のアップロードに失敗しました: " + e.getMessage());
 			return "redirect:/items/new";
 		}
 
@@ -182,6 +225,7 @@ public class ItemController {
 		model.addAttribute("shippingDurations", ShippingDuration.values());
 		model.addAttribute("shippingFeeBurdens", ShippingFeeBurden.values());
 		model.addAttribute("shippingRegions", ShippingRegion.values());
+		model.addAttribute("shippingMethods", ShippingMethod.values());
 		return "item_form";
 	}
 
@@ -198,6 +242,7 @@ public class ItemController {
 			@RequestParam("shippingDuration") ShippingDuration shippingDuration,
 			@RequestParam("shippingFeeBurden") ShippingFeeBurden shippingFeeBurden,
 			@RequestParam("shippingRegion") ShippingRegion shippingRegion,
+			@RequestParam("shippingMethod") ShippingMethod shippingMethod,
 			@RequestParam(value = "image", required = false) MultipartFile imageFile,
 			RedirectAttributes redirectAttributes) {
 
@@ -222,6 +267,7 @@ public class ItemController {
 		existingItem.setShippingDuration(shippingDuration);
 		existingItem.setShippingFeeBurden(shippingFeeBurden);
 		existingItem.setShippingRegion(shippingRegion);
+		existingItem.setShippingMethod(shippingMethod);
 
 		try {
 			itemService.saveItem(existingItem, imageFile);

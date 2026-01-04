@@ -46,8 +46,8 @@ public class ChatController {
 		// 対象商品のチャットメッセージ一覧を取得して Model に登録
 		model.addAttribute("chats", chatService.getChatMessagesByItem(itemId));
 		// 商品詳細画面テンプレート（item_detail.html）を再利用してチャットを表示
-		return "item_detail"; // Re-use item_detail for chat display
-	}
+		return "redirect:/items/{itemId}";
+		}
 
 	//指定された商品に対するチャットメッセージ送信を処理するハンドラ（POST /chat/{itemId}）
 	@PostMapping("/{itemId}")
@@ -64,6 +64,6 @@ public class ChatController {
 		//サービスを通じてチャットメッセージを保存・送信処理
 		chatService.sendMessage(itemId, sender, message);
 		//同じ商品のチャット画面へリダイレクトし、最新のメッセージ一覧を再表示
-		return "redirect:/chat/{itemId}";
-	}
+		return "redirect:/items/{itemId}";
+		}
 }

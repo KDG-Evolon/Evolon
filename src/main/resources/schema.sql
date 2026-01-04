@@ -46,6 +46,8 @@ CREATE TABLE item (
     shipping_duration VARCHAR(50) NOT NULL,
     shipping_fee_burden VARCHAR(50) NOT NULL,
     shipping_region VARCHAR(50) NOT NULL DEFAULT '未設定',
+    shipping_method VARCHAR(50) NOT NULL DEFAULT 'OTHER',
+
 
     category_id INT,
     status VARCHAR(20) DEFAULT '出品中',

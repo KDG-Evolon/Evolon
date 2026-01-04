@@ -83,6 +83,19 @@
                     </option>
                 </select>
             </p>
+			
+			<!-- 発送方法 -->
+			<p>
+			    発送方法：
+			    <select name="shippingMethod" required>
+			        <option th:each="method : ${shippingMethods}"
+			                th:value="${method}"
+			                th:text="${method.label}"
+			                th:selected="${item.shippingMethod == method}">
+			        </option>
+			    </select>
+			</p>
+
 
             <!-- カテゴリ -->
             <p>
