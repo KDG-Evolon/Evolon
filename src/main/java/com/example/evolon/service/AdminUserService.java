@@ -75,4 +75,13 @@ public class AdminUserService {
 		u.setEnabled(true); // BAN 解除後ログイン有効化
 		userRepository.save(u);
 	}
+
+	// ユーザーのログイン有効 / 無効を切り替える
+	@Transactional
+	public void toggleEnabled(Long userId) {
+		User user = findUser(userId);
+		user.setEnabled(!user.isEnabled());
+		userRepository.save(user);
+	}
+
 }

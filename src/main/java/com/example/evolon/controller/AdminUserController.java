@@ -76,7 +76,7 @@ public class AdminUserController {
 		// 現在のソート条件も画面側で利用できるよう Model に格納
 		model.addAttribute("sort", sort);
 		// ユーザー一覧画面に対応するテンプレートを返却
-		return "admin/users/list";
+		return "admin_users";
 	}
 
 	@GetMapping("/{id}")
@@ -96,7 +96,7 @@ public class AdminUserController {
 		// クレーム詳細一覧を Model に格納
 		model.addAttribute("complaints", service.complaints(id));
 		// ユーザー詳細画面に対応するテンプレート名を返却
-		return "admin/users/detail";
+		return "admin_user_detail";
 	}
 
 	// ユーザーを BAN（利用停止）する処理を担当するハンドラー（POST /admin/users/{id}/ban）
@@ -122,4 +122,13 @@ public class AdminUserController {
 		// 対象ユーザー詳細画面へリダイレクトし、クエリパラメータで解除済みであることを通知
 		return "redirect:/admin/users/" + id + "?unbanned";
 	}
+
+	// ユーザー関係
+
+	@PostMapping("/{id}/toggle-enabled")
+	public String toggleEnabled(@PathVariable Long id) {
+		service.toggleEnabled(id);
+		return "redirect:/admin/users/" + id;
+	}
+
 }

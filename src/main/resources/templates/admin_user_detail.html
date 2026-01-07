@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>管理者: ユーザー詳細</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+<div class="container">
+
+    <h1>ユーザー詳細</h1>
+
+    <!-- 基本情報 -->
+    <h2>基本情報</h2>
+    <table>
+        <tr>
+            <th>ID</th>
+            <td th:text="${user.id}"></td>
+        </tr>
+        <tr>
+            <th>名前</th>
+            <td th:text="${user.name}"></td>
+        </tr>
+        <tr>
+            <th>メールアドレス</th>
+            <td th:text="${user.email}"></td>
+        </tr>
+        <tr>
+            <th>役割</th>
+            <td th:text="${user.role}"></td>
+        </tr>
+        <tr>
+            <th>状態</th>
+            <td th:text="${user.enabled ? '有効' : '停止中'}"></td>
+        </tr>
+    </table>
+
+    <!-- 管理操作 -->
+    <h2>管理操作</h2>
+
+    <form th:action="@{/admin/users/{id}/toggle-enabled(id=${user.id})}"
+          method="post"
+          style="display:inline;"
+          onsubmit="return confirm(this.dataset.confirmMessage);"
+          th:data-confirm-message="${user.enabled ? 'このユーザーを停止します。よろしいですか？' : 'このユーザーを有効化します。よろしいですか？'}">
+
+        <button type="submit"
+                class="button"
+                th:classappend="${user.enabled ? ' danger' : ' secondary'}"
+                th:text="${user.enabled ? 'アカウント停止' : '停止解除'}">
+        </button>
+    </form>
+
+    <div class="button-group" style="margin-top:20px;">
+        <a th:href="@{/admin/users}"
+           class="button secondary">
+            ユーザー一覧に戻る
+        </a>
+
+        <a th:href="@{/admin/dashboard}"
+           class="button secondary">
+            管理者ダッシュボードに戻る
+        </a>
+    </div>
+
+</div>
+</body>
+</html>

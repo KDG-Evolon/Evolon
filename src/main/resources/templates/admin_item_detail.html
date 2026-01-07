@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>管理者: 商品詳細</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+<div class="container">
+
+    <h1>商品管理（詳細）</h1>
+
+    <table>
+        <tr>
+            <th>ID</th>
+            <td th:text="${item.id}"></td>
+        </tr>
+
+        <tr>
+            <th>商品名</th>
+            <td th:text="${item.name}"></td>
+        </tr>
+
+        <tr>
+            <th>出品者</th>
+            <td th:text="${item.seller.name}"></td>
+        </tr>
+
+        <tr>
+            <th>価格</th>
+            <td th:text="'¥' + ${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')}"></td>
+        </tr>
+
+        <tr>
+            <th>カテゴリ</th>
+            <td th:text="${item.category != null ? item.category.name : '未分類'}"></td>
+        </tr>
+
+        <tr>
+            <th>ステータス</th>
+            <td th:text="${item.status}"></td>
+        </tr>
+
+        <tr>
+            <th>商品説明</th>
+            <td th:text="${item.description}"></td>
+        </tr>
+
+        <tr th:if="${item.imageUrl}">
+            <th>商品画像</th>
+            <td>
+                <img th:src="${item.imageUrl}"
+                     alt="商品画像"
+                     style="max-width:300px;">
+            </td>
+        </tr>
+    </table>
+
+	<div class="button-group">
+
+	    <!-- 出品中 → 非公開 -->
+	    <form th:if="${item.status == '出品中'}"
+	          th:action="@{/admin/items/{id}/unpublish(id=${item.id})}"
+	          method="post">
+	        <button type="submit"
+	                class="button secondary">
+	            非公開にする
+	        </button>
+	    </form>
+
+	    <!-- 非公開 → 再公開 -->
+	    <form th:if="${item.status == '非公開'}"
+	          th:action="@{/admin/items/{id}/publish(id=${item.id})}"
+	          method="post">
+	        <button type="submit"
+	                class="button primary">
+	            再公開する
+	        </button>
+	    </form>
+
+	    <form th:action="@{/admin/items/{id}/delete(id=${item.id})}"
+	          method="post">
+	        <button type="submit"
+	                class="button danger">
+	            削除
+	        </button>
+	    </form>
+
+	    <a th:href="@{/admin/items}" class="button secondary">
+	        一覧に戻る
+	    </a>
+	</div>
+
+
+</div>
+</body>
+</html>

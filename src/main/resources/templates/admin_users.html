@@ -1,11 +1,8 @@
 <!DOCTYPE html>
-<html lang="ja"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>管理者: ユーザー管理 - フリマアプリ</title>
+    <title>管理者: ユーザー管理</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 
@@ -22,37 +19,44 @@
             <th>名前</th>
             <th>メールアドレス</th>
             <th>役割</th>
-            <th>有効/無効</th>
+            <th>状態</th>
             <th>操作</th>
         </tr>
         </thead>
 
         <tbody>
-        <!-- ユーザー一覧 -->
         <tr th:each="user : ${users}">
             <td th:text="${user.id}"></td>
-            <td th:text="${user.name}"></td>
+
+            <td>
+                <a th:href="@{/admin/users/{id}(id=${user.id})}"
+                   th:text="${user.name}"></a>
+            </td>
+
             <td th:text="${user.email}"></td>
             <td th:text="${user.role}"></td>
-            <td th:text="${user.enabled ? '有効' : '無効'}"></td>
+
+            <td th:text="${user.enabled} ? '有効' : '無効'"></td>
 
             <td>
                 <form th:action="@{/admin/users/{id}/toggle-enabled(id=${user.id})}"
                       method="post"
-                      style="display:inline;">
+                      style="display:inline;"
+                      onsubmit="return confirmToggle(this);">
 
-					  <button type="submit"
-					          class="button"
-					          th:classappend="${user.enabled ? ' danger' : ' secondary'}"
-					          th:text="${user.enabled ? '無効にする' : '有効にする'}"
-					          th:onclick="|return confirm('本当にこのユーザーを${user.enabled ? '無効' : '有効'}にしますか？');|">
-					  </button>
+                    <input type="hidden"
+                           name="enabled"
+                           th:value="${user.enabled}"/>
 
+                    <button type="submit"
+                            class="button"
+                            th:classappend="${user.enabled} ? ' danger' : ' secondary'"
+                            th:text="${user.enabled} ? '無効にする' : '有効にする'">
+                    </button>
                 </form>
             </td>
         </tr>
 
-        <!-- ユーザーなし -->
         <tr th:if="${#lists.isEmpty(users)}">
             <td colspan="6">ユーザーがいません。</td>
         </tr>
@@ -60,10 +64,23 @@
     </table>
 
     <div class="button-group">
-        <a th:href="@{/admin/dashboard}"
-           class="button secondary">管理者ダッシュボードに戻る</a>
+        <a th:href="@{/admin/dashboard}" class="button secondary">
+            管理者ダッシュボードに戻る
+        </a>
     </div>
 
 </div>
+
+<script>
+    function confirmToggle(form) {
+        const enabled = form.querySelector('input[name="enabled"]').value === 'true';
+        return confirm(
+            enabled
+                ? '本当にこのユーザーを無効にしますか？'
+                : '本当にこのユーザーを有効にしますか？'
+        );
+    }
+</script>
+
 </body>
 </html>

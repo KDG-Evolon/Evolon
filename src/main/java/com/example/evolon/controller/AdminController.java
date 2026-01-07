@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.evolon.service.AppOrderService;
 import com.example.evolon.service.ItemService;
+import com.example.evolon.service.UserService;
 
 // このクラスが Web リクエストを処理する「コントローラ」であることを示すアノテーション
 @Controller
@@ -31,13 +32,19 @@ public class AdminController {
 	// 注文・売上などアプリ全体の注文情報を扱うサービスクラスのフィールド
 	private final AppOrderService appOrderService;
 
+	private final UserService userService;
+
 	// コンストラクタインジェクションにより、サービスを受け取ってフィールドに設定
-	public AdminController(ItemService itemService, AppOrderService appOrderService) {
+	public AdminController(ItemService itemService, AppOrderService appOrderService, UserService userService) {
 		// 引数で受け取った ItemService をフィールドに格納
 		this.itemService = itemService;
 		// 引数で受け取った AppOrderService をフィールドに格納
 		this.appOrderService = appOrderService;
+
+		this.userService = userService;
 	}
+
+	//　商品関係
 
 	// 管理者向けの商品一覧画面を表示するハンドラ（GET /admin/items）
 	@GetMapping("/items")
@@ -56,6 +63,37 @@ public class AdminController {
 		//削除成功後、商品一覧画面へリダイレクトし、クエリパラメータで成功メッセージを付加
 		return "redirect:/admin/items?success=deleted";
 	}
+
+	// 非公開
+	@PostMapping("/items/{id}/unpublish")
+	public String unpublishItem(@PathVariable Long id) {
+		itemService.unpublishItem(id);
+		return "redirect:/admin/items";
+	}
+
+	// 再公開
+	@PostMapping("/items/{id}/publish")
+	public String publishItem(@PathVariable Long id) {
+		itemService.publishItem(id);
+		return "redirect:/admin/items";
+	}
+
+	// 管理者用：商品詳細画面
+	@GetMapping("/items/{id}")
+	public String showItemDetail(@PathVariable("id") Long id, Model model) {
+
+		var item = itemService.findById(id)
+				.orElseThrow(() -> new IllegalArgumentException("商品が存在しません"));
+
+		model.addAttribute("item", item);
+
+		// 課題用：仮の違反理由（DB持たなくてOK）
+		model.addAttribute("violationReason", "ガイドライン違反の可能性あり");
+
+		return "admin_item_detail";
+	}
+
+	//統計関係
 
 	//売上統計を表示する画面用ハンドラ（GET /admin/statistics）
 	@GetMapping("/statistics")
@@ -134,4 +172,5 @@ public class AdminController {
 							.append(",").append(String.valueOf(count)).append("\n"));
 		}
 	}
+
 }
