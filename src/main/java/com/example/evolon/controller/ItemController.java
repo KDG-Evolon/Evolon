@@ -58,6 +58,7 @@ import com.example.evolon.service.UserService;
 ///items 配下のリクエストを受け付ける
 @RequestMapping("/items")
 public class ItemController {
+
 	//商品サービスへの参照
 	private final ItemService itemService;
 	//カテゴリサービスへの参照
@@ -72,20 +73,19 @@ public class ItemController {
 	private final ReviewService reviewService;
 
 	//依存関係をコンストラクタインジェクションで受け取る
-	public ItemController(ItemService itemService, CategoryService categoryService,
+	public ItemController(
+			ItemService itemService,
+			CategoryService categoryService,
 			UserService userService,
-			ChatService chatService, FavoriteService favoriteService, ReviewService reviewService) {
-		//商品サービスをフィールドに設定
+			ChatService chatService,
+			FavoriteService favoriteService,
+			ReviewService reviewService) {
+
 		this.itemService = itemService;
-		//カテゴリサービスをフィールドに設定
 		this.categoryService = categoryService;
-		//ユーザサービスをフィールドに設定
 		this.userService = userService;
-		//チャットサービスをフィールドに設定
 		this.chatService = chatService;
-		//お気に入りサービスをフィールドに設定
 		this.favoriteService = favoriteService;
-		//レビューサービスをフィールドに設定
 		this.reviewService = reviewService;
 	}
 
@@ -102,14 +102,17 @@ public class ItemController {
 			@RequestParam(value = "size", defaultValue = "10") int size,
 			//画面へデータを渡すモデル
 			Model model) {
+
 		//条件に応じて商品を検索（出品中のみ）
 		Page<Item> items = itemService.searchItems(keyword, categoryId, page, size);
 		//カテゴリ一覧を取得
 		List<Category> categories = categoryService.getAllCategories();
+
 		//商品一覧をテンプレートへ渡す
 		model.addAttribute("items", items);
 		//カテゴリ一覧をテンプレートへ渡す
 		model.addAttribute("categories", categories);
+
 		//一覧画面のテンプレート名を返す
 		return "item_list";
 	}
@@ -120,6 +123,7 @@ public class ItemController {
 			@PathVariable("id") Long id,
 			@AuthenticationPrincipal UserDetails userDetails,
 			Model model) {
+
 		Optional<Item> itemOpt = itemService.getItemById(id);
 		if (itemOpt.isEmpty()) {
 			return "redirect:/items";
@@ -131,9 +135,11 @@ public class ItemController {
 		// チャット
 		model.addAttribute("chats", chatService.getChatMessagesByItem(id));
 
-		// 出品者評価
-		reviewService.getAverageRatingForSeller(item.getSeller())
-				.ifPresent(avg -> model.addAttribute("sellerAverageRating", String.format("%.1f", avg)));
+		// 出品者評価（GOOD/BAD件数）
+		if (item.getSeller() != null) {
+			model.addAttribute("sellerGoodCount", reviewService.countGoodForSeller(item.getSeller()));
+			model.addAttribute("sellerBadCount", reviewService.countBadForSeller(item.getSeller()));
+		}
 
 		boolean isOwner = false;
 		boolean isFavorited = false;
@@ -182,181 +188,150 @@ public class ItemController {
 			@RequestParam(value = "image", required = false) MultipartFile imageFile,
 			//リダイレクトメッセージ用
 			RedirectAttributes redirectAttributes) {
+
 		//出品者ユーザを取得（存在しなければ例外）
 		User seller = userService.getUserByEmail(userDetails.getUsername())
 				.orElseThrow(() -> new RuntimeException("Seller not found"));
+
 		//カテゴリを ID で取得（存在しなければ 400 相当）
 		Category category = categoryService.getCategoryById(categoryId)
 				.orElseThrow(() -> new IllegalArgumentException("Category not found"));
+
 		//新規 Item を作成して各項目を設定
 		Item item = new Item();
-		//出品者を設定
 		item.setSeller(seller);
-		//商品名を設定
 		item.setName(name);
-		//説明を設定
 		item.setDescription(description);
-		//価格を設定
 		item.setPrice(price);
-		//カテゴリを設定
 		item.setCategory(category);
+
 		//画像があればアップロードして保存、なければそのまま保存
 		try {
-			//画像アップロードを含めて保存
 			itemService.saveItem(item, imageFile);
-			//成功メッセージをフラッシュ
 			redirectAttributes.addFlashAttribute("successMessage", "商品を出品しました！");
 		} catch (IOException e) {
-			//画像アップロード失敗時のエラーメッセージ
 			redirectAttributes.addFlashAttribute("errorMessage", "画像のアップロードに失敗しました: " + e.getMessage());
-			//入力フォームへ戻す
 			return "redirect:/items/new";
 		}
-		//一覧へリダイレクト
+
 		return "redirect:/items";
 	}
 
 	//出品編集フォーム表示の GET エンドポイント
 	@GetMapping("/{id}/edit")
 	public String showEditItemForm(@PathVariable("id") Long id, Model model) {
-		//対象商品を取得
 		Optional<Item> item = itemService.getItemById(id);
-		//なければ一覧へ
 		if (item.isEmpty()) {
-			//商品が存在しない
 			return "redirect:/items";
 		}
-		//既存商品の内容をフォームへ
+
 		model.addAttribute("item", item.get());
-		//カテゴリ選択肢を用意
 		model.addAttribute("categories", categoryService.getAllCategories());
-		//入力フォームを返却
 		return "item_form";
 	}
 
 	//出品更新の POST エンドポイント（簡便のため POST を使用）
 	@PostMapping("/{id}")
 	public String updateItem(
-			//パスの ID
 			@PathVariable("id") Long id,
-			//現在のログインユーザ
 			@AuthenticationPrincipal UserDetails userDetails,
-			//更新後の商品名
 			@RequestParam("name") String name,
-			//更新後の説明
 			@RequestParam("description") String description,
-			//更新後の価格
 			@RequestParam("price") BigDecimal price,
-			//更新後のカテゴリ ID
 			@RequestParam("categoryId") Long categoryId,
-			//差し替え画像（任意）
 			@RequestParam(value = "image", required = false) MultipartFile imageFile,
-			//リダイレクトメッセージ
 			RedirectAttributes redirectAttributes) {
-		// 既存商品を取得（なければ 404 相当）
+
 		Item existingItem = itemService.getItemById(id)
 				.orElseThrow(() -> new RuntimeException("Item not found"));
-		// 現在ユーザを取得
+
 		User currentUser = userService.getUserByEmail(userDetails.getUsername())
 				.orElseThrow(() -> new RuntimeException("User not found"));
-		// 出品者以外の編集をブロック
+
 		if (!existingItem.getSeller().getId().equals(currentUser.getId())) {
-			// 権限エラーをフラッシュ
 			redirectAttributes.addFlashAttribute("errorMessage", "この商品は編集できません。");
-			// 一覧へ戻す
 			return "redirect:/items";
 		}
-		// カテゴリ取得（なければ 400）
+
 		Category category = categoryService.getCategoryById(categoryId)
 				.orElseThrow(() -> new IllegalArgumentException("Category not found"));
-		// 値を上書き
+
 		existingItem.setName(name);
-		// 説明を上書き
 		existingItem.setDescription(description);
-		// 価格を上書き
 		existingItem.setPrice(price);
-		// カテゴリを上書き
 		existingItem.setCategory(category);
-		// 保存処理（画像差し替えがあればアップロード）
+
 		try {
-			// 保存実行
 			itemService.saveItem(existingItem, imageFile);
-			// 成功メッセージ
 			redirectAttributes.addFlashAttribute("successMessage", "商品を更新しました！");
 		} catch (IOException e) {
-			// 画像アップロードの失敗を通知
 			redirectAttributes.addFlashAttribute("errorMessage", "画像のアップロードに失敗しました: " + e.getMessage());
-			// 編集画面へ戻す
 			return "redirect:/items/{id}/edit";
 		}
-		// 詳細画面へリダイレクト
+
 		return "redirect:/items/{id}";
 	}
 
 	// 出品削除の POST エンドポイント
 	@PostMapping("/{id}/delete")
-	public String deleteItem(@PathVariable("id") Long id, @AuthenticationPrincipal UserDetails userDetails,
+	public String deleteItem(
+			@PathVariable("id") Long id,
+			@AuthenticationPrincipal UserDetails userDetails,
 			RedirectAttributes redirectAttributes) {
-		// 削除対象の商品を取得
+
 		Item itemToDelete = itemService.getItemById(id)
 				.orElseThrow(() -> new RuntimeException("Item not found"));
-		// 現在のユーザを取得
+
 		User currentUser = userService.getUserByEmail(userDetails.getUsername())
 				.orElseThrow(() -> new RuntimeException("User not found"));
-		// 出品者以外は削除不可
+
 		if (!itemToDelete.getSeller().getId().equals(currentUser.getId())) {
-			// 権限エラーを通知
 			redirectAttributes.addFlashAttribute("errorMessage", "この商品は削除できません。");
-			// 一覧へ
 			return "redirect:/items";
 		}
-		// サービスを通じて削除（画像削除も内包）
+
 		itemService.deleteItem(id);
-		// 成功メッセージ
 		redirectAttributes.addFlashAttribute("successMessage", "商品を削除しました。");
-		// 一覧へ
 		return "redirect:/items";
 	}
 
 	// お気に入り登録の POST
 	@PostMapping("/{id}/favorite")
-	public String addFavorite(@PathVariable("id") Long itemId, @AuthenticationPrincipal UserDetails userDetails,
+	public String addFavorite(
+			@PathVariable("id") Long itemId,
+			@AuthenticationPrincipal UserDetails userDetails,
 			RedirectAttributes redirectAttributes) {
-		// 現在ユーザを取得
+
 		User currentUser = userService.getUserByEmail(userDetails.getUsername())
 				.orElseThrow(() -> new RuntimeException("User not found"));
-		// 例外をサービス側で投げ、ここでユーザに伝える
+
 		try {
-			// お気に入り追加
 			favoriteService.addFavorite(currentUser, itemId);
-			// 成功メッセージ
 			redirectAttributes.addFlashAttribute("successMessage", "お気に入りに追加しました！");
 		} catch (IllegalStateException e) {
-			// エラーメッセージ
 			redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
 		}
-		// 詳細へ戻る
+
 		return "redirect:/items/{id}";
 	}
 
 	// お気に入り解除の POST
 	@PostMapping("/{id}/unfavorite")
-	public String removeFavorite(@PathVariable("id") Long itemId, @AuthenticationPrincipal UserDetails userDetails,
+	public String removeFavorite(
+			@PathVariable("id") Long itemId,
+			@AuthenticationPrincipal UserDetails userDetails,
 			RedirectAttributes redirectAttributes) {
-		// 現在ユーザを取得
+
 		User currentUser = userService.getUserByEmail(userDetails.getUsername())
 				.orElseThrow(() -> new RuntimeException("User not found"));
-		// 例外をユーザに伝える
+
 		try {
-			// お気に入り削除
 			favoriteService.removeFavorite(currentUser, itemId);
-			// 成功メッセージ
 			redirectAttributes.addFlashAttribute("successMessage", "お気に入りから削除しました。");
 		} catch (IllegalStateException e) {
-			// エラーメッセージ
 			redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
 		}
-		// 詳細へ戻る
+
 		return "redirect:/items/{id}";
 	}
 }

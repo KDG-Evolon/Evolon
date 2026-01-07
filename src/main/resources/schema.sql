@@ -106,21 +106,47 @@ CREATE TABLE favorite_item (
     FOREIGN KEY (item_id) REFERENCES item(id)
 );
 
--- レビュー
+-- レビュー（購入者→出品者、出品者→購入者の2件を許可）
 CREATE TABLE review (
     id SERIAL PRIMARY KEY,
-    order_id INT NOT NULL UNIQUE,
+
+    order_id INT NOT NULL,
     reviewer_id INT NOT NULL,
+    reviewee_id INT NOT NULL,     -- 追加（評価される人）
+
+    -- 旧互換（残す）
     seller_id INT NOT NULL,
     item_id INT NOT NULL,
     rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+
+    -- 新
+    result VARCHAR(10) NOT NULL CHECK (result IN ('GOOD','BAD')),
+
     comment TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (order_id) REFERENCES app_order(id),
+    FOREIGN KEY (reviewer_id) REFERENCES users(id),
+    FOREIGN KEY (reviewee_id) REFERENCES users(id),
+    FOREIGN KEY (seller_id) REFERENCES users(id),
+    FOREIGN KEY (item_id) REFERENCES item(id),
+
+    -- ★ここが重要：1注文×同一レビュワーは1回まで
+    UNIQUE (order_id, reviewer_id)
+);
+
+-- 既存の idx は order_id でOK
+CREATE INDEX idx_review_order_id ON review(order_id);
+CREATE INDEX idx_review_reviewee_id ON review(reviewee_id);
+
+
     FOREIGN KEY (order_id) REFERENCES app_order(id),
     FOREIGN KEY (reviewer_id) REFERENCES users(id),
     FOREIGN KEY (seller_id) REFERENCES users(id),
-    FOREIGN KEY (item_id) REFERENCES item(id)
+    FOREIGN KEY (item_id) REFERENCES item(id),
+    FOREIGN KEY (reviewee_id) REFERENCES users(id)
 );
+
 
 -- レビュー統計
 CREATE TABLE review_stats (

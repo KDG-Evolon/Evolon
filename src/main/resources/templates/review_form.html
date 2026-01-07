@@ -2,7 +2,6 @@
 <html lang="ja"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-
 <head>
     <meta charset="UTF-8">
     <title>商品評価 - フリマアプリ</title>
@@ -12,7 +11,7 @@
 <body>
 <div class="container">
 
-    <h1>商品評価</h1>
+    <h1>商品評価（到着確認）</h1>
 
     <p>
         商品「<span th:text="${order.item.name}"></span>」の出品者
@@ -25,38 +24,39 @@
          th:text="${errorMessage}">
     </div>
 
-    <!-- レビュー送信フォーム -->
-    <form th:action="@{/reviews}" method="post">
+    <!-- 到着確認 + レビュー送信フォーム -->
+    <form th:action="@{/orders/{id}/receive-and-review(id=${order.id})}" method="post">
+        <!-- CSRF -->
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-        <!-- 注文ID -->
-        <input type="hidden"
-               name="orderId"
-               th:value="${order.id}">
-
-        <!-- 評価点 -->
+        <!-- 評価（二択） -->
         <p>
-            <label for="rating">評価 (1〜5):</label>
-            <input type="number"
-                   id="rating"
-                   name="rating"
-                   min="1"
-                   max="5"
-                   required>
+            <label>評価：</label><br>
+            <label>
+                <input type="radio" name="result" value="GOOD" required>
+                良い
+            </label>
+            <label style="margin-left: 12px;">
+                <input type="radio" name="result" value="BAD" required>
+                悪い
+            </label>
         </p>
 
-        <!-- コメント -->
+        <!-- コメント（必須） -->
         <p>
-            <label for="comment">コメント (任意):</label>
+            <label for="comment">コメント（必須）：</label>
             <textarea id="comment"
                       name="comment"
-                      rows="5"></textarea>
+                      rows="5"
+                      maxlength="500"
+                      required
+                      placeholder="理由を必ず入力してください（例：梱包が丁寧でした／説明と状態が違いました など）"></textarea>
         </p>
 
         <!-- ボタン -->
         <div class="button-group">
-            <button type="submit" class="button">評価を送信</button>
-            <a th:href="@{/my-page/orders}"
-               class="button secondary">キャンセル</a>
+            <button type="submit" class="button">到着確認して評価する</button>
+            <a th:href="@{/my-page/orders}" class="button secondary">キャンセル</a>
         </div>
     </form>
 

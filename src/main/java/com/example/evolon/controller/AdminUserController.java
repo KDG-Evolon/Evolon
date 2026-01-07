@@ -83,14 +83,10 @@ public class AdminUserController {
 	public String detail(@PathVariable Long id, Model model) {
 		// 指定 ID のユーザー情報をサービスから取得
 		User user = service.findUser(id);
-		// 指定ユーザーの平均評価値を取得
-		Double avg = service.averageRating(id);
 		// 指定ユーザーに対するクレーム件数を取得
 		long complaints = service.complaintCount(id);
 		// ユーザー情報を画面表示用に Model に格納
 		model.addAttribute("user", user);
-		// 平均評価を Model に格納
-		model.addAttribute("avgRating", avg);
 		// クレーム件数を Model に格納
 		model.addAttribute("complaintCount", complaints);
 		// クレーム詳細一覧を Model に格納

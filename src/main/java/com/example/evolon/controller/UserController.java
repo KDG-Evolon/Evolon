@@ -11,7 +11,6 @@ import com.example.evolon.entity.User;
 import com.example.evolon.service.AppOrderService;
 import com.example.evolon.service.FavoriteService;
 import com.example.evolon.service.ItemService;
-import com.example.evolon.service.ReviewService;
 import com.example.evolon.service.UserService;
 
 @Controller
@@ -22,20 +21,17 @@ public class UserController {
 	private final ItemService itemService;
 	private final AppOrderService appOrderService;
 	private final FavoriteService favoriteService;
-	private final ReviewService reviewService;
 
 	public UserController(
 			UserService userService,
 			ItemService itemService,
 			AppOrderService appOrderService,
-			FavoriteService favoriteService,
-			ReviewService reviewService) {
+			FavoriteService favoriteService) {
 
 		this.userService = userService;
 		this.itemService = itemService;
 		this.appOrderService = appOrderService;
 		this.favoriteService = favoriteService;
-		this.reviewService = reviewService;
 	}
 
 	/* =====================
@@ -50,10 +46,13 @@ public class UserController {
 
 		model.addAttribute("user", user);
 
-		// ✅ 最近の購入履歴（確定済のみ）
-		model.addAttribute(
-				"orders",
+		// 最近の購入履歴
+		model.addAttribute("orders",
 				appOrderService.findPurchasedOrdersByBuyer(user));
+
+		// 出品中プレビュー用
+		model.addAttribute("items",
+				itemService.getItemsBySeller(user));
 
 		return "my_page";
 	}
@@ -68,7 +67,6 @@ public class UserController {
 
 		User user = getLoginUser(userDetails);
 
-		// ★ここが超重要
 		model.addAttribute(
 				"myOrders",
 				appOrderService.findPurchasedOrdersByBuyer(user));
@@ -128,20 +126,16 @@ public class UserController {
 	}
 
 	/* =====================
-	 * 自分のレビュー
+	 * 自分のレビュー（レビュー機能OFFのため一旦停止）
 	 * ===================== */
 	@GetMapping("/reviews")
 	public String myReviews(
 			@AuthenticationPrincipal UserDetails userDetails,
 			Model model) {
 
-		User user = getLoginUser(userDetails);
-
-		model.addAttribute(
-				"reviews",
-				reviewService.getReviewsByReviewer(user));
-
-		return "user_reviews";
+		// 一旦レビュー機能を外す
+		// 必要ならフラッシュメッセージや「準備中」表示に変える
+		return "redirect:/my-page";
 	}
 
 	/* =====================

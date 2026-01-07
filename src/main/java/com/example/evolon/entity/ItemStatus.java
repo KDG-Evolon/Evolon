@@ -2,7 +2,11 @@ package com.example.evolon.entity;
 
 public enum ItemStatus {
 
-	SELLING("出品中", true), SOLD("売却済み", false), SUSPENDED("停止中", false);
+	SELLING("出品中", true),
+
+	PAYMENT_DONE("発送待ち", false),
+
+	SOLD("取引完了", false), SUSPENDED("停止中", false);
 
 	private final String label;
 	private final boolean purchasable;

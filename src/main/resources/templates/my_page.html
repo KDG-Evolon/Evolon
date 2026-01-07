@@ -1,37 +1,35 @@
-<h2>購入履歴</h2>
+<h1>マイページ</h1>
 
-<p th:text="'orders size = ' + ${orders.size()}"></p>
+<div class="button-group">
+  <a th:href="@{/my-page/orders}" class="button">購入一覧</a>
+  <a th:href="@{/my-page/selling}" class="button">出品一覧</a>
+  <a th:href="@{/orders/sales}">販売履歴</a>
+  <a th:href="@{/items}" class="button secondary">商品一覧へ</a>
 
+
+</div>
+
+<hr>
+
+<h2>出品中（プレビュー）</h2>
 <table>
   <thead>
     <tr>
       <th>商品名</th>
       <th>価格</th>
       <th>ステータス</th>
-      <th>操作</th>
     </tr>
   </thead>
   <tbody>
-    <tr th:each="order : ${orders}">
-      <td th:text="${order.item.name}"></td>
-      <td th:text="${order.price}"></td>
-      <td th:text="${order.orderStatus.label}"></td>
-
-      <td>
-        <!-- 到着確認 -->
-        <form th:if="${order.orderStatus.name() == 'SHIPPED'}"
-              th:action="@{/orders/{id}/deliver(id=${order.id})}"
-              method="post">
-          <button type="submit" class="button">到着確認</button>
-        </form>
-
-        <!-- 評価へ -->
-        <a th:if="${order.orderStatus.name() == 'DELIVERED'}"
-           th:href="@{/reviews/new/{id}(id=${order.id})}"
-           class="button secondary">
-          評価する
-        </a>
-      </td>
+    <tr th:each="item : ${items}">
+      <td th:text="${item.name}"></td>
+      <td th:text="'¥' + ${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')}"></td>
+	  <td th:text="${item.status.label}"></td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(items)}">
+      <td colspan="3">出品中の商品はありません。</td>
     </tr>
   </tbody>
 </table>
+
+<a th:href="@{/my-page/selling}" class="button secondary">出品一覧をもっと見る</a>

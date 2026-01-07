@@ -35,12 +35,6 @@ public class AdminUserService {
 						id));
 	}
 
-	// 対象ユーザーの平均レビュー評価を取得（null の場合は 0 として返す）
-	public Double averageRating(Long userId) {
-		Double avg = userRepository.averageRatingForUser(userId);
-		return (avg == null) ? 0.0 : avg;
-	}
-
 	//指定ユーザーの通報件数を取得
 	public long complaintCount(Long userId) {
 		return complaintRepository.countByReportedUserId(userId);

@@ -14,9 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.evolon.entity.AppOrder;
 import com.example.evolon.entity.Item;
 import com.example.evolon.entity.OrderStatus;
+import com.example.evolon.entity.Review;
+import com.example.evolon.entity.ReviewResult;
 import com.example.evolon.entity.User;
 import com.example.evolon.repository.AppOrderRepository;
 import com.example.evolon.repository.ItemRepository;
+import com.example.evolon.repository.ReviewRepository; // ★追加
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 
@@ -28,18 +31,22 @@ public class AppOrderService {
 	private final ItemService itemService;
 	private final StripeService stripeService;
 	private final LineNotifyService lineNotifyService;
+	private final ReviewRepository reviewRepository; // ★追加
 
 	public AppOrderService(
 			AppOrderRepository appOrderRepository,
 			ItemRepository itemRepository,
 			ItemService itemService,
 			StripeService stripeService,
-			LineNotifyService lineNotifyService) {
+			LineNotifyService lineNotifyService,
+			ReviewRepository reviewRepository // ★追加
+	) {
 		this.appOrderRepository = appOrderRepository;
 		this.itemRepository = itemRepository;
 		this.itemService = itemService;
 		this.stripeService = stripeService;
 		this.lineNotifyService = lineNotifyService;
+		this.reviewRepository = reviewRepository; // ★追加
 	}
 
 	/* =================================================
@@ -47,8 +54,6 @@ public class AppOrderService {
 	 * ================================================= */
 	@Transactional
 	public PaymentIntent initiatePurchase(Long itemId, User buyer) throws StripeException {
-
-		System.out.println("★★ AppOrder 作成開始 ★★");
 
 		Item item = itemRepository.findById(itemId)
 				.orElseThrow(() -> new IllegalArgumentException("商品が存在しません"));
@@ -66,14 +71,15 @@ public class AppOrderService {
 		order.setItem(item);
 		order.setBuyer(buyer);
 		order.setPrice(item.getPrice());
+
+		// ✅ 注文：決済待ち
 		order.setOrderStatus(OrderStatus.PAYMENT_PENDING);
-		order.setStatus(OrderStatus.PAYMENT_PENDING.getLabel()); // 表示用
+		order.setStatus(OrderStatus.PAYMENT_PENDING.getLabel()); // 表示用（将来は消してOK）
+
 		order.setPaymentIntentId(paymentIntent.getId());
 		order.setCreatedAt(LocalDateTime.now());
 
 		appOrderRepository.save(order);
-
-		System.out.println("★★ AppOrder 保存完了 ★★");
 
 		return paymentIntent;
 	}
@@ -91,13 +97,17 @@ public class AppOrderService {
 		AppOrder order = appOrderRepository.findByPaymentIntentId(paymentIntentId)
 				.orElseThrow(() -> new IllegalStateException("注文が見つかりません"));
 
-		// 二重実行防止
-		if (order.getOrderStatus() == OrderStatus.PURCHASED) {
+		// ✅ 二重実行防止：PAYMENT_PENDING 以外なら何もしない
+		if (order.getOrderStatus() != OrderStatus.PAYMENT_PENDING) {
 			return order;
 		}
 
-		order.completePurchase(); // PURCHASED
-		itemService.markAsSold(order.getItem().getId());
+		// ✅ 注文：購入済（=発送待ち）
+		order.setOrderStatus(OrderStatus.PURCHASED);
+		order.setStatus(OrderStatus.PURCHASED.getLabel()); // 表示用（将来は消してOK）
+
+		// ✅ 商品：出品一覧から消す（出品中ではなくなる）
+		itemService.markAsPaymentDone(order.getItem().getId());
 
 		notifySellerPurchased(order);
 		return order;
@@ -107,9 +117,23 @@ public class AppOrderService {
 	 * 発送（出品者）
 	 * ================================================= */
 	@Transactional
-	public void markOrderAsShipped(Long orderId) {
+	public void markOrderAsShipped(Long orderId, String sellerEmail) {
+
 		AppOrder order = findOrder(orderId);
-		order.ship(LocalDateTime.now());
+
+		// ✅ 出品者本人チェック
+		if (!order.getItem().getSeller().getEmail().equals(sellerEmail)) {
+			throw new IllegalStateException("発送の権限がありません");
+		}
+
+		// ✅ 状態チェック（購入済=発送待ち のときだけ発送可能）
+		if (order.getOrderStatus() != OrderStatus.PURCHASED) {
+			throw new IllegalStateException("発送できないステータスです");
+		}
+
+		order.ship(LocalDateTime.now()); // ここで SHIPPED に変わる想定
+		order.setStatus(OrderStatus.SHIPPED.getLabel()); // 表示用（将来は消してOK）
+
 		notifyBuyerShipped(order);
 	}
 
@@ -117,15 +141,22 @@ public class AppOrderService {
 	 * 到着確認（購入者）
 	 * ================================================= */
 	@Transactional
-	public void markOrderAsDelivered(Long orderId, String email) {
+	public void markOrderAsDelivered(Long orderId, String buyerEmail) {
 
 		AppOrder order = findOrder(orderId);
 
-		if (!order.getBuyer().getEmail().equals(email)) {
+		// ✅ 購入者本人チェック
+		if (!order.getBuyer().getEmail().equals(buyerEmail)) {
 			throw new IllegalStateException("到着確認の権限がありません");
 		}
 
-		order.deliver(LocalDateTime.now());
+		// ✅ 状態チェック（発送済のときだけ到着確認可能）
+		if (order.getOrderStatus() != OrderStatus.SHIPPED) {
+			throw new IllegalStateException("到着確認できないステータスです");
+		}
+
+		order.deliver(LocalDateTime.now()); // ここで DELIVERED に変わる想定
+		order.setStatus(OrderStatus.DELIVERED.getLabel()); // 表示用（将来は消してOK）
 	}
 
 	/* =================================================
@@ -139,7 +170,8 @@ public class AppOrderService {
 				List.of(
 						OrderStatus.PURCHASED,
 						OrderStatus.SHIPPED,
-						OrderStatus.DELIVERED));
+						OrderStatus.DELIVERED,
+						OrderStatus.COMPLETED));
 	}
 
 	/** 出品者の売上 */
@@ -155,7 +187,7 @@ public class AppOrderService {
 		return appOrderRepository.findTop5ByOrderByCreatedAtDesc();
 	}
 
-	/** ★ 管理者ダッシュボード用（これが必要だった） */
+	/** 管理者ダッシュボード用 */
 	public List<AppOrder> getAllOrders() {
 		return appOrderRepository.findAll();
 	}
@@ -166,7 +198,9 @@ public class AppOrderService {
 	public BigDecimal getTotalSales(LocalDate start, LocalDate end) {
 		return appOrderRepository.findAll().stream()
 				.filter(o -> o.getOrderStatus() == OrderStatus.PURCHASED
-						|| o.getOrderStatus() == OrderStatus.SHIPPED)
+						|| o.getOrderStatus() == OrderStatus.SHIPPED
+						|| o.getOrderStatus() == OrderStatus.DELIVERED
+						|| o.getOrderStatus() == OrderStatus.COMPLETED) // ★追加推奨
 				.filter(o -> !o.getCreatedAt().toLocalDate().isBefore(start)
 						&& !o.getCreatedAt().toLocalDate().isAfter(end))
 				.map(AppOrder::getPrice)
@@ -180,6 +214,53 @@ public class AppOrderService {
 				.collect(Collectors.groupingBy(
 						o -> o.getOrderStatus().name(),
 						Collectors.counting()));
+	}
+
+	/* =================================================
+	 * 到着確認 + 評価（同時処理）
+	 * ================================================= */
+	@Transactional
+	public void completeOrderWithReview(
+			Long orderId,
+			String buyerEmail,
+			ReviewResult result,
+			String comment) {
+
+		AppOrder order = findOrder(orderId);
+
+		// 購入者チェック
+		if (!order.getBuyer().getEmail().equals(buyerEmail)) {
+			throw new IllegalStateException("権限がありません");
+		}
+
+		// ステータスチェック
+		if (order.getOrderStatus() != OrderStatus.SHIPPED) {
+			throw new IllegalStateException("この注文は完了できません");
+		}
+
+		// コメント必須
+		if (comment == null || comment.trim().isEmpty()) {
+			throw new IllegalArgumentException("コメントは必須です");
+		}
+
+		// 二重評価防止
+		if (reviewRepository.existsByOrder_Id(orderId)) {
+			throw new IllegalStateException("すでに評価済みです");
+		}
+
+		Review review = new Review();
+		review.setOrder(order);
+		review.setReviewer(order.getBuyer());
+		review.setReviewee(order.getItem().getSeller());
+		review.setResult(result);
+		review.setComment(comment.trim());
+		review.setCreatedAt(LocalDateTime.now());
+
+		reviewRepository.save(review);
+
+		// 注文完了（OrderStatusにCOMPLETEDが必要）
+		order.setOrderStatus(OrderStatus.COMPLETED);
+		order.setStatus(OrderStatus.COMPLETED.getLabel());
 	}
 
 	/* =================================================

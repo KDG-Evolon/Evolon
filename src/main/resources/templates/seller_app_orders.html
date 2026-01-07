@@ -32,15 +32,20 @@
             <td th:text="${order.item.name}"></td>
             <td th:text="${order.buyer.name}"></td>
             <td th:text="'¥' + ${#numbers.formatDecimal(order.price, 0, 'COMMA', 0, 'POINT')}"></td>
-            <td th:text="${order.status}"></td>
 
-            <!-- 発送操作 -->
+            <!-- enumのラベル表示 -->
+            <td th:text="${order.orderStatus.label}"></td>
+
+            <!-- 発送操作：PURCHASED（=発送待ち）のときだけ -->
             <td>
-                <form th:if="${order.status == '購入済'}"
-                      th:action="@{/orders/{id}/ship(id=${order.id})}"
-                      method="post">
-                    <button type="submit" class="button">発送済みにする</button>
-                </form>
+				<form th:if="${order.orderStatus.name() == 'PURCHASED'}"
+				      th:action="@{/orders/{id}/ship(id=${order.id})}"
+				      method="post">
+				  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+				  <button type="submit" class="button">発送済みにする</button>
+				</form>
+                <!-- すでに発送済み・到着確認済みのときの表示 -->
+                <span th:if="${order.orderStatus.name() != 'PURCHASED'}">-</span>
             </td>
         </tr>
 

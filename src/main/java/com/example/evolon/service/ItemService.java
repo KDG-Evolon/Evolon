@@ -104,7 +104,17 @@ public class ItemService {
 	 * 状態変更
 	 * ========================= */
 
-	/** 売却確定 */
+	/** ★決済完了 → 発送待ち */
+	public void markAsPaymentDone(Long itemId) {
+
+		Item item = itemRepository.findById(itemId)
+				.orElseThrow(() -> new IllegalArgumentException("商品が見つかりません"));
+
+		item.setStatus(ItemStatus.PAYMENT_DONE);
+		itemRepository.save(item);
+	}
+
+	/** 売却確定（取引完全終了などで使う用：必要なら） */
 	public void markAsSold(Long itemId) {
 
 		Item item = itemRepository.findById(itemId)

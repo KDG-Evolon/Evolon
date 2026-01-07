@@ -115,10 +115,12 @@
 
     <div class="chat-box">
 
-        <div th:each="chat : ${chats}"
-             class="chat-message"
-             th:classappend="${isOwner or chat.sender.email != #authentication.name
-                              ? 'other-message' : 'my-message'}">
+		<div th:each="chat : ${chats}"
+		     class="chat-message"
+		     th:classappend="${isOwner 
+		        or (chat.sender != null and chat.sender.email != null and chat.sender.email != #authentication.name)
+		        ? 'other-message' : 'my-message'}">
+
 
             <span class="sender-name" th:text="${chat.sender.name}"></span>
             <span class="message-time"
