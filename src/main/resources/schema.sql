@@ -24,7 +24,7 @@ CREATE TABLE users (
     ban_reason TEXT,
     banned_at TIMESTAMP,
     banned_by_admin_id INT,
-    --パスワード再設定用
+    -- パスワード再設定用
     reset_token VARCHAR(255),
     reset_token_expires_at TIMESTAMP
 );
@@ -42,6 +42,13 @@ CREATE TABLE item (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     price NUMERIC(10,2) NOT NULL,
+
+    shipping_duration VARCHAR(50) NOT NULL,
+    shipping_fee_burden VARCHAR(50) NOT NULL,
+    shipping_region VARCHAR(50) NOT NULL DEFAULT '未設定',
+    shipping_method VARCHAR(50) NOT NULL DEFAULT 'OTHER',
+
+
     category_id INT,
     status VARCHAR(20) DEFAULT '出品中',
     listing_type VARCHAR(50),
@@ -51,6 +58,7 @@ CREATE TABLE item (
     postage NUMERIC(10,2),
     local VARCHAR(255),
     condition VARCHAR(255),
+
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (category_id) REFERENCES category(id)
 );
@@ -141,6 +149,7 @@ CREATE TABLE user_complaint (
     FOREIGN KEY (reporter_user_id) REFERENCES users(id)
 );
 
+-- 問い合わせ
 CREATE TABLE IF NOT EXISTS inquiry (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
@@ -152,9 +161,6 @@ CREATE TABLE IF NOT EXISTS inquiry (
     replied_at TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
-
-
-
 
 -- ========== INDEX ==========
 CREATE INDEX idx_users_banned ON users(banned);
@@ -171,4 +177,4 @@ CREATE INDEX idx_fav_item_id ON favorite_item(item_id);
 CREATE INDEX idx_review_order_id ON review(order_id);
 CREATE INDEX idx_uc_reported ON user_complaint(reported_user_id);
 CREATE INDEX idx_uc_reporter ON user_complaint(reporter_user_id);
-
+CREATE INDEX idx_item_shipping_region ON item(shipping_region);

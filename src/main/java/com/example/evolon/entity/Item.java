@@ -1,63 +1,137 @@
 package com.example.evolon.entity;
 
-// 金額を表す BigDecimal と日時を利用
 import java.math.BigDecimal;
-import java.time.LocalDateTime; // Add this import
+import java.time.LocalDateTime;
 
-// JPA アノテーションの読み込み
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
-// Lombok でボイラープレート削減
+import com.example.evolon.domain.enums.ShippingDuration;
+import com.example.evolon.domain.enums.ShippingFeeBurden;
+import com.example.evolon.domain.enums.ShippingMethod;
+import com.example.evolon.domain.enums.ShippingRegion;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-// JPA エンティティ指定
 
+/**
+ * 商品エンティティ
+ */
 @Entity
-// テーブル名 item を明示
 @Table(name = "item")
-// Lombok：getter/setter 等
 @Data
-// Lombok：デフォルトコンストラクタ
 @NoArgsConstructor
-// Lombok：全フィールドコンストラクタ
 @AllArgsConstructor
 public class Item {
+
+	// =========================
 	// 主キー
+	// =========================
 	@Id
-	// 自動採番（IDENTITY）
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	// 出品者（users テーブルへの外部キー）。NULL 禁止
+
+	// =========================
+	// 出品者
+	// =========================
 	@ManyToOne
 	@JoinColumn(name = "user_id", nullable = false)
 	private User seller;
-	// 商品名。NULL 禁止
+
+	// =========================
+	// 商品名
+	// =========================
 	@Column(nullable = false)
 	private String name;
-	// 商品説明。長文想定で TEXT
+
+	// =========================
+	// 商品説明
+	// =========================
 	@Column(columnDefinition = "TEXT")
 	private String description;
-	// 価格。NULL 禁止（小数を扱うため BigDecimal）
+
+	// =========================
+	// 価格
+	// =========================
 	@Column(nullable = false)
 	private BigDecimal price;
-	//カテゴリ（外部キー）。NULL 可（未分類を許容）
+
+	// =========================
+	// 発送目安
+	// =========================
+	@Enumerated(EnumType.STRING)
+	@Column(name = "shipping_duration", nullable = false)
+	private ShippingDuration shippingDuration;
+
+	// =========================
+	// 送料負担
+	// =========================
+	@Enumerated(EnumType.STRING)
+	@Column(name = "shipping_fee_burden", nullable = false)
+	private ShippingFeeBurden shippingFeeBurden;
+
+	// =========================
+	// 発送地域
+	// =========================
+	@Enumerated(EnumType.STRING)
+	@Column(name = "shipping_region", nullable = false)
+	private ShippingRegion shippingRegion;
+
+	// =========================
+	//  発送方法
+	// =========================
+	@Enumerated(EnumType.STRING)
+	@Column(name = "shipping_method", nullable = false)
+	private ShippingMethod shippingMethod;
+
+	// =========================
+	// カテゴリ
+	// =========================
 	@ManyToOne
 	@JoinColumn(name = "category_id")
 	private Category category;
-	//出品ステータス。初期値は「出品中」
-	private String status = "出品中"; // default status
-	//画像 URL（Cloudinary にアップロードした結果を格納）
-	//For image URLs (Cloudinary)
+
+	// =========================
+	// 出品ステータス
+	// =========================
+	@Column(nullable = false)
+	private String status;
+
+	// =========================
+	// 画像URL
+	// =========================
 	private String imageUrl;
-	//作成日時。列名を created_at に固定、初期値は現在時刻
-	@Column(name = "created_at", nullable = false) // New field
-	private LocalDateTime createdAt = LocalDateTime.now();
+
+	// =========================
+	// 作成日時
+	// =========================
+	@Column(name = "created_at", nullable = false)
+	private LocalDateTime createdAt;
+
+	// =========================
+	// ★ 保存前に自動セット
+	// =========================
+	@PrePersist
+	public void prePersist() {
+
+		// 作成日時
+		if (this.createdAt == null) {
+			this.createdAt = LocalDateTime.now();
+		}
+
+		// 出品ステータス（一覧に出すため必須）
+		if (this.status == null) {
+			this.status = "出品中";
+		}
+	}
 }

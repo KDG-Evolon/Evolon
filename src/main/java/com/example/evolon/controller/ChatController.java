@@ -83,7 +83,11 @@ public class ChatController {
 		// サービスを通じてチャットメッセージを保存・送信処理
 		chatService.sendMessage(itemId, sender, message);
 
+		//同じ商品のチャット画面へリダイレクトし、最新のメッセージ一覧を再表示
+		return "redirect:/items/{itemId}";
+
 		// 同じ商品のチャット画面へリダイレクトし、最新のメッセージ一覧を再表示
 		return "redirect:/chat/{itemId}";
+
 	}
 }

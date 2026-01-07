@@ -57,7 +57,7 @@
 			<button type="submit" class="button">検索</button>
 		</form>
 		<!-- 商品カード一覧（レスポンシブグリッド） -->
-		<div＞ class="item-grid">
+		<div class="item-grid">
 			<!-- Page<Item>の content を回して 1 カードずつ描画 -->
 			<div class="item-card" th:each="item : ${items.content}">
 				<!-- 詳細画面へのリンク全体でカード化 -->
@@ -71,10 +71,18 @@
 
 					<!-- 商品名を見出しとして表示 -->
 					<h3 th:text="${item.name}"></h3>
+					<p class="description"
+					   th:text="${item.description}">
+					</p>
+
 
 					<!-- 価格を通貨風に整形（¥＋カンマ区切り） -->
 					<p class="price" th:text="'¥' + ${#numbers.formatDecimal(item.price, 0,'COMMA', 0, 'POINT')}"></p>
 
+					<p class="shipping-fee">
+					    送料：
+					    <span th:text="${item.shippingFeeBurden != null ? item.shippingFeeBurden.label : '未設定'}"></span>
+					</p>
 					<!-- 出品ステータス（出品中/売却済）を表示 -->
 					<p class="status" th:text="${item.status}"></p>
 				</a>
