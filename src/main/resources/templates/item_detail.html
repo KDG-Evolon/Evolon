@@ -69,6 +69,44 @@
             <span th:text="${item.status.label}"></span>
         </p>
 
+        <!-- ========================= -->
+        <!-- ★ カード情報 -->
+        <!-- ========================= -->
+        <div class="card-info-box" th:if="${item.cardInfo != null}">
+            <h2>カード情報</h2>
+
+            <p>
+                カード名：
+                <span th:text="${item.cardInfo.cardName}">カード名</span>
+            </p>
+
+            <p>
+                レアリティ：
+                <span th:text="${item.cardInfo.rarity != null ? item.cardInfo.rarity.label : '-'}">レアリティ</span>
+            </p>
+
+            <p>
+                封入パック：
+                <span th:text="${item.cardInfo.packName}">封入パック</span>
+            </p>
+
+            <p>
+                状態：
+                <span th:text="${item.cardInfo.condition != null ? item.cardInfo.condition.label : '-'}">状態</span>
+            </p>
+
+            <p>
+                レギュレーション：
+                <span th:text="${item.cardInfo.regulation != null ? item.cardInfo.regulation.label : '-'}">レギュレーション</span>
+            </p>
+        </div>
+
+        <!-- cardInfo が無い商品向け（念のため） -->
+        <div class="card-info-box" th:if="${item.cardInfo == null}">
+            <h2>カード情報</h2>
+            <p>カード情報が登録されていません。</p>
+        </div>
+
     </div>
 
     <!-- ========================= -->

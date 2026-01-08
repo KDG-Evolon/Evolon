@@ -300,12 +300,25 @@ public class ItemController {
 		item.setCategory(category);
 
 		// =========================
-		// ★ 超重要：CardInfo 側に Item をセット
 		// OneToOne の owner は CardInfo
 		// =========================
-		if (item.getCardInfo() != null) {
-			item.getCardInfo().setItem(item);
+		if (item.getCardInfo() == null
+				|| item.getCardInfo().getCardName() == null || item.getCardInfo().getCardName().isBlank()
+				|| item.getCardInfo().getPackName() == null || item.getCardInfo().getPackName().isBlank()
+				|| item.getCardInfo().getRarity() == null
+				|| item.getCardInfo().getCondition() == null
+				|| item.getCardInfo().getRegulation() == null) {
+
+			redirectAttributes.addFlashAttribute(
+					"errorMessage",
+					"カード名・レアリティ・封入パック・状態・レギュレーションはすべて必須です。");
+			return "redirect:/items/new";
 		}
+
+		// =========================
+		// ★ 超重要：CardInfo 側に Item をセット
+		// =========================
+		item.getCardInfo().setItem(item);
 
 		// =========================
 		// 保存
@@ -373,6 +386,12 @@ public class ItemController {
 			@RequestParam("shippingRegion") ShippingRegion shippingRegion,
 			@RequestParam("shippingMethod") ShippingMethod shippingMethod,
 
+			@RequestParam("cardInfo.cardName") String cardName,
+			@RequestParam("cardInfo.packName") String packName,
+			@RequestParam("cardInfo.rarity") Rarity rarity,
+			@RequestParam("cardInfo.condition") CardCondition condition,
+			@RequestParam("cardInfo.regulation") Regulation regulation,
+
 			RedirectAttributes redirectAttributes) {
 
 		// 未ログインなら更新不可
@@ -407,6 +426,22 @@ public class ItemController {
 		existingItem.setShippingFeeBurden(shippingFeeBurden);
 		existingItem.setShippingRegion(shippingRegion);
 		existingItem.setShippingMethod(shippingMethod);
+
+		// =========================
+		// ★ カード情報更新（null なら作る）
+		// =========================
+		if (existingItem.getCardInfo() == null) {
+			existingItem.setCardInfo(new com.example.evolon.entity.CardInfo());
+			existingItem.getCardInfo().setItem(existingItem);
+		}
+
+		existingItem.getCardInfo().setCardName(cardName);
+		existingItem.getCardInfo().setPackName(packName);
+		existingItem.getCardInfo().setRarity(rarity);
+		existingItem.getCardInfo().setCondition(condition);
+		existingItem.getCardInfo().setRegulation(regulation);
+
+		existingItem.getCardInfo().setItem(existingItem);
 
 		try {
 			itemService.saveItem(existingItem, imageFile);

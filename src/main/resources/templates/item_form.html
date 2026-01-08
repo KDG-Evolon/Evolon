@@ -124,61 +124,62 @@
 
             <!-- ========================= -->
             <!-- ★ カード情報入力欄 -->
-            <!-- name 属性を cardInfo.XXX に変更することで Item.cardInfo にバインド可能 -->
-            <!-- ========================= -->
 
-            <!-- カード名 -->
-            <p>
-                <label for="cardName">カード名:</label>
-                <input type="text" id="cardName" name="cardInfo.cardName" 
-                       th:value="${item.cardInfo != null ? item.cardInfo.cardName : ''}">
-            </p>
+			<!-- カード名 -->
+			<p>
+			  <label for="cardName">カード名:</label>
+			  <input type="text" id="cardName" name="cardInfo.cardName"
+			         th:value="${item.cardInfo != null ? item.cardInfo.cardName : ''}"
+			         required>
+			</p>
 
-            <!-- レアリティ -->
-            <p>
-                <label for="rarity">レアリティ:</label>
-                <select id="rarity" name="cardInfo.rarity">
-                    <option value="">選択してください</option>
-                    <option th:each="r : ${rarities}"
-                            th:value="${r.name()}"
-                            th:text="${r.label}"
-                            th:selected="${item.cardInfo != null ? item.cardInfo.rarity == r : false}">
-                    </option>
-                </select>
-            </p>
+			<!-- レアリティ -->
+			<p>
+			  <label for="rarity">レアリティ:</label>
+			  <select id="rarity" name="cardInfo.rarity" required>
+			    <option value="" selected>選択してください</option>
+			    <option th:each="r : ${rarities}"
+			            th:value="${r.name()}"
+			            th:text="${r.label}"
+			            th:selected="${item.cardInfo != null ? item.cardInfo.rarity == r : false}">
+			    </option>
+			  </select>
+			</p>
 
-            <!-- 封入パック -->
-            <p>
-                <label for="packName">封入パック:</label>
-                <input type="text" id="packName" name="cardInfo.packName" 
-                       th:value="${item.cardInfo != null ? item.cardInfo.packName : ''}">
-            </p>
+			<!-- 封入パック -->
+			<p>
+			  <label for="packName">封入パック:</label>
+			  <input type="text" id="packName" name="cardInfo.packName"
+			         th:value="${item.cardInfo != null ? item.cardInfo.packName : ''}"
+			         required>
+			</p>
 
-            <!-- カード状態 -->
-            <p>
-                <label for="condition">状態:</label>
-                <select id="condition" name="cardInfo.condition">
-                    <option value="">選択してください</option>
-                    <option th:each="c : ${conditions}"
-                            th:value="${c.name()}"
-                            th:text="${c.label}"
-                            th:selected="${item.cardInfo != null ? item.cardInfo.condition == c : false}">
-                    </option>
-                </select>
-            </p>
+			<!-- 状態 -->
+			<p>
+			  <label for="condition">状態:</label>
+			  <select id="condition" name="cardInfo.condition" required>
+			    <option value="" selected>選択してください</option>
+			    <option th:each="c : ${conditions}"
+			            th:value="${c.name()}"
+			            th:text="${c.label}"
+			            th:selected="${item.cardInfo != null ? item.cardInfo.condition == c : false}">
+			    </option>
+			  </select>
+			</p>
 
-            <!-- レギュレーション -->
-            <p>
-                <label for="regulation">レギュレーション:</label>
-                <select id="regulation" name="cardInfo.regulation">
-                    <option value="">選択してください</option>
-                    <option th:each="r : ${regulations}"
-                            th:value="${r.name()}"
-                            th:text="${r.label}"
-                            th:selected="${item.cardInfo != null ? item.cardInfo.regulation == r : false}">
-                    </option>
-                </select>
-            </p>
+			<!-- レギュレーション -->
+			<p>
+			  <label for="regulation">レギュレーション:</label>
+			  <select id="regulation" name="cardInfo.regulation" required>
+			    <option value="" selected>選択してください</option>
+			    <option th:each="r : ${regulations}"
+			            th:value="${r.name()}"
+			            th:text="${r.label}"
+			            th:selected="${item.cardInfo != null ? item.cardInfo.regulation == r : false}">
+			    </option>
+			  </select>
+			</p>
+
 
             <!-- ========================= -->
             <!-- ボタン群 -->
