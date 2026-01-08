@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <title>商品一覧</title>
 
-    <!-- CSS -->
+    <!-- 共通CSS -->
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 
@@ -29,89 +29,97 @@
         </form>
     </div>
 
-    <!-- ========================= -->
-    <!-- 検索フォーム -->
-    <!-- ========================= -->
-    <form th:action="@{/items/search}" method="get" class="filter-form">
+	<!-- ========================= -->
+	<!-- 検索フォーム -->
+	<!-- ========================= -->
+	<form th:action="@{/items/search}" method="get" class="filter-form">
 
-        <!-- カード名 -->
-        <div>
-            <label>カード名</label>
-            <input type="text" name="cardName" th:value="${param.cardName}">
-        </div>
+	  <!-- カード名 -->
+	  <div>
+	    <label>カード名</label>
+	    <input type="text" name="cardName" th:value="${param.cardName}">
+	  </div>
 
-        <!-- レアリティ -->
-        <div>
-            <label>レアリティ</label>
-            <select name="rarity">
-                <option value="">全て</option>
-                <option th:each="r : ${rarities}"
-                        th:value="${r}"
-                        th:text="${r.label}"
-                        th:selected="${param.rarity == r}">
-                </option>
-            </select>
-        </div>
+	  <!-- レアリティ -->
+	  <div>
+	    <label>レアリティ</label>
+	    <select name="rarity">
+	      <option value="">全て</option>
 
-        <!-- レギュレーション -->
-        <div>
-            <label>レギュレーション</label>
-            <select name="regulation">
-                <option value="">全て</option>
-                <option th:each="r : ${regulations}"
-                        th:value="${r}"
-                        th:text="${r.label}"
-                        th:selected="${param.regulation == r}">
-                </option>
-            </select>
-        </div>
+	      <!-- ★ value は enum の name()（= Rarity.valueOf で変換できる値）にする -->
+	      <option th:each="r : ${rarities}"
+	              th:value="${r.name()}"
+	              th:text="${r.label}"
+	              th:selected="${param.rarity != null and param.rarity[0] == r.name()}">
+	      </option>
+	    </select>
+	  </div>
 
-        <!-- 封入パック -->
-        <div>
-            <label>封入パック</label>
-            <input type="text" name="packName" th:value="${param.packName}">
-        </div>
+	  <!-- レギュレーション -->
+	  <div>
+	    <label>レギュレーション</label>
+	    <select name="regulation">
+	      <option value="">全て</option>
 
-        <!-- カード状態（★ CardInfo に統一） -->
-        <div>
-            <label>状態</label>
-            <select name="condition">
-                <option value="">全て</option>
-                <option th:each="c : ${conditions}"
-                        th:value="${c}"
-                        th:text="${c.label}"
-                        th:selected="${param.condition == c}">
-                </option>
-            </select>
-        </div>
+	      <!-- ★ value は enum の name() -->
+	      <option th:each="r : ${regulations}"
+	              th:value="${r.name()}"
+	              th:text="${r.label}"
+	              th:selected="${param.regulation != null and param.regulation[0] == r.name()}">
+	      </option>
+	    </select>
+	  </div>
 
-        <!-- 価格 -->
-        <div>
-            <label>価格</label>
-            <input type="number" name="minPrice" placeholder="最小" th:value="${param.minPrice}">
-            〜
-            <input type="number" name="maxPrice" placeholder="最大" th:value="${param.maxPrice}">
-        </div>
+	  <!-- 封入パック -->
+	  <div>
+	    <label>封入パック</label>
+	    <input type="text" name="packName" th:value="${param.packName}">
+	  </div>
 
-        <!-- 並び替え -->
-        <div>
-            <label>並び替え</label>
-            <select name="sort">
-                <option value="new" th:selected="${param.sort == 'new'}">新着順</option>
-                <option value="priceAsc" th:selected="${param.sort == 'priceAsc'}">価格昇順</option>
-                <option value="priceDesc" th:selected="${param.sort == 'priceDesc'}">価格降順</option>
-            </select>
-        </div>
+	  <!-- 状態 -->
+	  <div>
+	    <label>状態</label>
+	    <select name="condition">
+	      <option value="">全て</option>
 
-        <!-- 検索 -->
-        <button type="submit" class="button">検索</button>
-    </form>
+	      <!-- ★ value は enum の name() -->
+	      <option th:each="c : ${conditions}"
+	              th:value="${c.name()}"
+	              th:text="${c.label}"
+	              th:selected="${param.condition != null and param.condition[0] == c.name()}">
+	      </option>
+	    </select>
+	  </div>
+
+	  <!-- 価格 -->
+	  <div>
+	    <label>価格</label>
+	    <input type="number" name="minPrice" placeholder="最小" th:value="${param.minPrice}">
+	    〜
+	    <input type="number" name="maxPrice" placeholder="最大" th:value="${param.maxPrice}">
+	  </div>
+
+	  <!-- 並び替え -->
+	  <div>
+	    <label>並び替え</label>
+	    <select name="sort">
+	      <option value="new" th:selected="${param.sort == null or param.sort[0] == 'new'}">新着順</option>
+	      <option value="priceAsc" th:selected="${param.sort != null and param.sort[0] == 'priceAsc'}">価格昇順</option>
+	      <option value="priceDesc" th:selected="${param.sort != null and param.sort[0] == 'priceDesc'}">価格降順</option>
+	    </select>
+	  </div>
+
+	  <!-- 検索 -->
+	  <button type="submit" class="button">検索</button>
+	</form>
+
 
     <!-- ========================= -->
     <!-- 商品一覧 -->
     <!-- ========================= -->
     <div class="item-grid">
 
+        <!-- 商品1件 -->
         <div class="item-card" th:each="item : ${items.content}">
             <a th:href="@{/items/{id}(id=${item.id})}">
 
@@ -122,12 +130,23 @@
                 <!-- 商品名 -->
                 <h3 th:text="${item.name}"></h3>
 
-                <!-- カード情報 -->
-                <p th:text="'カード名：' + ${item.cardInfo.cardName}"></p>
-                <p th:text="'レアリティ：' + ${item.cardInfo.rarity.label}"></p>
-                <p th:text="'状態：' + ${item.cardInfo.condition.label}"></p>
-                <p th:text="'レギュレーション：' + ${item.cardInfo.regulation.label}"></p>
-                <p th:text="'封入パック：' + ${item.cardInfo.packName}"></p>
+                <!-- ========================= -->
+                <!-- ★ カード情報（null対策） -->
+                <!-- ========================= -->
+
+                <!-- cardInfo が存在する場合 -->
+                <div th:if="${item.cardInfo != null}">
+                    <p th:text="'カード名：' + ${item.cardInfo.cardName}"></p>
+                    <p th:text="'レアリティ：' + ${item.cardInfo.rarity.label}"></p>
+                    <p th:text="'状態：' + ${item.cardInfo.condition.label}"></p>
+                    <p th:text="'レギュレーション：' + ${item.cardInfo.regulation.label}"></p>
+                    <p th:text="'封入パック：' + ${item.cardInfo.packName != null ? item.cardInfo.packName : ''}"></p>
+                </div>
+
+                <!-- cardInfo が未登録の場合 -->
+                <div th:if="${item.cardInfo == null}">
+                    <p>カード情報：未登録</p>
+                </div>
 
                 <!-- 価格 -->
                 <p class="price"
@@ -146,7 +165,7 @@
     </div>
 
     <!-- ========================= -->
-    <!-- ページネーション（★ 検索条件保持） -->
+    <!-- ページネーション（検索条件保持） -->
     <!-- ========================= -->
     <div class="pagination">
 

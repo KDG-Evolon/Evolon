@@ -3,6 +3,7 @@ package com.example.evolon.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,7 +13,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+
+import com.example.evolon.domain.enums.ShippingDuration;
+import com.example.evolon.domain.enums.ShippingFeeBurden;
+import com.example.evolon.domain.enums.ShippingMethod;
+import com.example.evolon.domain.enums.ShippingRegion;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,14 +32,23 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Item {
 
+	// =========================
+	// 主キー
+	// =========================
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	// =========================
+	// 出品者
+	// =========================
 	@ManyToOne
 	@JoinColumn(name = "user_id", nullable = false)
 	private User seller;
 
+	// =========================
+	// 基本情報
+	// =========================
 	@Column(nullable = false)
 	private String name;
 
@@ -46,20 +62,50 @@ public class Item {
 	@JoinColumn(name = "category_id")
 	private Category category;
 
+	// =========================
+	// 発送情報
+	// =========================
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private ShippingDuration shippingDuration;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private ShippingFeeBurden shippingFeeBurden;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private ShippingRegion shippingRegion;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private ShippingMethod shippingMethod;
+
+	// =========================
+	// ★ カード情報（逆側）
+	// =========================
+	@OneToOne(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+	private CardInfo cardInfo;
+
+	// =========================
+	// ステータス
+	// =========================
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private ItemStatus status = ItemStatus.SELLING;
 
 	private String imageUrl;
 
-	@Column(name = "created_at", nullable = false)
+	@Column(nullable = false)
 	private LocalDateTime createdAt = LocalDateTime.now();
 
+	// =========================
+	// ドメインロジック
+	// =========================
 	public boolean canBePurchased() {
 		return status.isPurchasable();
 	}
 
-	// 状態変更用（Service から呼ぶ）
 	public void markAsSold() {
 		this.status = ItemStatus.SOLD;
 	}

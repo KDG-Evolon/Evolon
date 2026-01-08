@@ -40,21 +40,31 @@ CREATE TABLE category (
 CREATE TABLE item (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
+
     name VARCHAR(255) NOT NULL,
     description TEXT,
     price NUMERIC(10,2) NOT NULL,
+
     category_id INT,
-    status VARCHAR(20) DEFAULT '出品中',
-    listing_type VARCHAR(50),
+
+    -- Entity: ItemStatus (EnumType.STRING)
+    -- Entity default: SELLING
+    status VARCHAR(20) NOT NULL DEFAULT 'SELLING',
+
     image_url TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    postage NUMERIC(10,2),
-    local VARCHAR(255),
-    condition VARCHAR(255),
+
+    -- Entity: Shipping* (EnumType.STRING)
+    shipping_duration VARCHAR(50) NOT NULL,
+    shipping_fee_burden VARCHAR(50) NOT NULL,
+    shipping_region VARCHAR(50) NOT NULL,
+    shipping_method VARCHAR(50) NOT NULL,
+
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (category_id) REFERENCES category(id)
 );
+
 
 -- 注文
 CREATE TABLE app_order (
@@ -146,16 +156,24 @@ CREATE TABLE review_stats (
 );
 
 -- カード情報
+-- カード情報
 CREATE TABLE card_info (
     id SERIAL PRIMARY KEY,
-    item_id INT NOT NULL,
-    pack VARCHAR(255),
-    rarity VARCHAR(50),
-    regulation VARCHAR(50),
+    item_id INT NOT NULL UNIQUE,
+
+    card_name VARCHAR(255) NOT NULL,
+    pack_name VARCHAR(255),
+
+    rarity VARCHAR(50) NOT NULL,
+    regulation VARCHAR(50) NOT NULL,
+    condition VARCHAR(50) NOT NULL,
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
     FOREIGN KEY (item_id) REFERENCES item(id)
 );
+
 
 -- 通報
 CREATE TABLE user_complaint (

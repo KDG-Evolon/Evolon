@@ -21,7 +21,6 @@ import lombok.NoArgsConstructor;
 
 /**
  * カード固有情報エンティティ
- * （カード名・レアリティ・レギュレーション・状態など）
  */
 @Entity
 @Table(name = "card_info")
@@ -38,43 +37,30 @@ public class CardInfo {
 	private Long id;
 
 	// =========================
-	// 商品（1対1）
+	// ★ Item 側が逆なので、ここが owner
 	// =========================
 	@OneToOne
 	@JoinColumn(name = "item_id", nullable = false)
 	private Item item;
 
 	// =========================
-	// カード名
+	// カード情報
 	// =========================
-	@Column(name = "card_name", nullable = false)
+	@Column(nullable = false)
 	private String cardName;
 
-	// =========================
-	// レアリティ
-	// =========================
 	@Enumerated(EnumType.STRING)
-	@Column(name = "rarity", nullable = false)
+	@Column(nullable = false)
 	private Rarity rarity;
 
-	// =========================
-	// レギュレーション
-	// =========================
 	@Enumerated(EnumType.STRING)
-	@Column(name = "regulation", nullable = false)
+	@Column(nullable = false)
 	private Regulation regulation;
 
-	// =========================
-	// 封入パック名（任意）
-	// =========================
-	@Column(name = "pack_name")
+	@Column
 	private String packName;
 
-	// =========================
-	// カード状態（例：MINT, NEAR_MINT, USED）
-	// Thymeleaf で item.cardInfo.condition にアクセスするために追加
-	// =========================
 	@Enumerated(EnumType.STRING)
-	@Column(name = "condition", nullable = false)
+	@Column(nullable = false)
 	private CardCondition condition;
 }
