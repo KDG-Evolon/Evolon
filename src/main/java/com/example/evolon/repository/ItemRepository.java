@@ -1,11 +1,17 @@
 package com.example.evolon.repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import com.example.evolon.domain.enums.CardCondition;
+import com.example.evolon.domain.enums.Rarity;
+import com.example.evolon.domain.enums.Regulation;
 import com.example.evolon.entity.Item;
 import com.example.evolon.entity.ItemStatus;
 import com.example.evolon.entity.User;
@@ -38,6 +44,38 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 			String name,
 			Long categoryId,
 			ItemStatus status,
+			Pageable pageable);
+
+	/* =========================
+	 * ★ カード条件検索（null は条件に入れない）
+	 *
+	 * - LEFT JOIN にしている理由：
+	 *   cardInfo が null の商品が存在しても落ちないようにするため
+	 * - cardName/rarity/condition... を指定した場合は、
+	 *   実質 cardInfo がある商品がヒットする
+	 * ========================= */
+	@Query("""
+				SELECT i
+				FROM Item i
+				LEFT JOIN i.cardInfo ci
+				WHERE i.status = :status
+				  AND (:cardName IS NULL OR ci.cardName LIKE %:cardName%)
+				  AND (:rarity IS NULL OR ci.rarity = :rarity)
+				  AND (:regulation IS NULL OR ci.regulation = :regulation)
+				  AND (:condition IS NULL OR ci.condition = :condition)
+				  AND (:packName IS NULL OR ci.packName LIKE %:packName%)
+				  AND (:minPrice IS NULL OR i.price >= :minPrice)
+				  AND (:maxPrice IS NULL OR i.price <= :maxPrice)
+			""")
+	Page<Item> searchByCardFilters(
+			@Param("status") ItemStatus status,
+			@Param("cardName") String cardName,
+			@Param("rarity") Rarity rarity,
+			@Param("regulation") Regulation regulation,
+			@Param("condition") CardCondition condition,
+			@Param("packName") String packName,
+			@Param("minPrice") BigDecimal minPrice,
+			@Param("maxPrice") BigDecimal maxPrice,
 			Pageable pageable);
 
 	/* =========================

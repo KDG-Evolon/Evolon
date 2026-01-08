@@ -1,6 +1,7 @@
 package com.example.evolon.service;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,6 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.evolon.domain.enums.CardCondition;
+import com.example.evolon.domain.enums.Rarity;
+import com.example.evolon.domain.enums.Regulation;
 import com.example.evolon.entity.Item;
 import com.example.evolon.entity.ItemStatus;
 import com.example.evolon.entity.User;
@@ -31,6 +35,7 @@ public class ItemService {
 
 	/* =========================
 	 * 商品検索（出品中のみ）
+	 * ※ 旧：キーワード + カテゴリのみ
 	 * ========================= */
 	public Page<Item> searchItems(String keyword, Long categoryId, int page, int size) {
 
@@ -54,6 +59,37 @@ public class ItemService {
 		} else {
 			return itemRepository.findByStatus(ItemStatus.SELLING, pageable);
 		}
+	}
+
+	/* =========================
+	 * ★ カード条件検索（出品中のみ）
+	 * （/items/search のフォーム条件をここで反映する）
+	 * ========================= */
+	public Page<Item> searchByCardFilters(
+			String cardName,
+			Rarity rarity,
+			Regulation regulation,
+			CardCondition condition,
+			String packName,
+			BigDecimal minPrice,
+			BigDecimal maxPrice,
+			String sort,
+			int page,
+			int size) {
+		// 並び替えを反映した Pageable を作る
+		Pageable pageable = PageRequest.of(page, size, ItemSortHelper.toSort(sort));
+
+		// Repository の @Query に投げる
+		return itemRepository.searchByCardFilters(
+				ItemStatus.SELLING,
+				hasText(cardName) ? cardName : null,
+				rarity,
+				regulation,
+				condition,
+				hasText(packName) ? packName : null,
+				minPrice,
+				maxPrice,
+				pageable);
 	}
 
 	/* =========================
@@ -88,10 +124,12 @@ public class ItemService {
 	@Transactional
 	public Item saveItem(Item item, MultipartFile imageFile) throws IOException {
 
+		// 画像がある場合は Cloudinary へアップロードし、URLを保存する
 		if (imageFile != null && !imageFile.isEmpty()) {
 			item.setImageUrl(cloudinaryService.uploadFile(imageFile));
 		}
 
+		// DBへ保存
 		return itemRepository.save(item);
 	}
 
@@ -101,6 +139,7 @@ public class ItemService {
 		Item item = itemRepository.findById(itemId)
 				.orElseThrow(() -> new IllegalArgumentException("商品が見つかりません"));
 
+		// 画像がある場合は Cloudinary からも削除
 		if (item.getImageUrl() != null) {
 			cloudinaryService.deleteFile(item.getImageUrl());
 		}
