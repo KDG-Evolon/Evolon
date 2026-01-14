@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.evolon.entity.User;
+import com.example.evolon.form.ProfileEditForm; // ★追加
 import com.example.evolon.repository.UserRepository;
 
 /**
@@ -87,7 +88,29 @@ public class UserService {
 		user.setEnabled(true);
 		user.setBanned(false);
 
+		// ★おすすめ：表示名が空にならないように初期値を入れる（任意）
+		// user.setNickname(name);
+
 		return userRepository.save(user);
+	}
+
+	// ==========================
+	// ★追加：プロフィール更新
+	// ==========================
+	@Transactional
+	public void updateProfile(User user, ProfileEditForm form) {
+
+		user.setNickname(form.getNickname());
+		user.setProfileImageUrl(form.getProfileImageUrl());
+
+		user.setLastName(form.getLastName());
+		user.setFirstName(form.getFirstName());
+		user.setPostalCode(form.getPostalCode());
+		user.setAddress(form.getAddress());
+
+		user.setBio(form.getBio());
+
+		userRepository.save(user);
 	}
 
 	@Transactional
@@ -119,5 +142,4 @@ public class UserService {
 
 		userRepository.save(user);
 	}
-
 }

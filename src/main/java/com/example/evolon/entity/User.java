@@ -54,10 +54,30 @@ public class User {
 	@Column(name = "banned_by_admin_id")
 	private Integer bannedByAdminId;
 
-	// ★★★ 追加 ★★★
 	@Column(name = "reset_token")
 	private String resetToken;
 
 	@Column(name = "reset_token_expires_at")
 	private LocalDateTime resetTokenExpiresAt;
+
+	@Column(nullable = false)
+	private String nickname;
+
+	@Column(name = "profile_image_url")
+	private String profileImageUrl;
+
+	@Column(name = "last_name")
+	private String lastName;
+
+	@Column(name = "first_name")
+	private String firstName;
+
+	@Column(name = "postal_code")
+	private String postalCode;
+
+	@Column(name = "address")
+	private String address;
+
+	@Column(length = 500)
+	private String bio; // 自己紹介
 }
