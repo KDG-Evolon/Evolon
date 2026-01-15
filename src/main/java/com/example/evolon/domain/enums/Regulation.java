@@ -1,7 +1,7 @@
 package com.example.evolon.domain.enums;
 
 public enum Regulation {
-	H("H"), I("I"), J("J");
+	STANDARD("スタンダード"), EXTRA("エクストラ");
 
 	private final String label;
 
