@@ -300,25 +300,32 @@ public class ItemController {
 		item.setCategory(category);
 
 		// =========================
-		// OneToOne の owner は CardInfo
+		// ★ カードカテゴリ以外なら CardInfo を無視する（サーバ側安全対策）
 		// =========================
-		if (item.getCardInfo() == null
-				|| item.getCardInfo().getCardName() == null || item.getCardInfo().getCardName().isBlank()
-				|| item.getCardInfo().getPackName() == null || item.getCardInfo().getPackName().isBlank()
-				|| item.getCardInfo().getRarity() == null
-				|| item.getCardInfo().getCondition() == null
-				|| item.getCardInfo().getRegulation() == null) {
+		if (category.getName() == null || !"カード".equals(category.getName())) {
+			item.setCardInfo(null);
+		} else {
+			// =========================
+			// OneToOne の owner は CardInfo（カードカテゴリのみ必須）
+			// =========================
+			if (item.getCardInfo() == null
+					|| item.getCardInfo().getCardName() == null || item.getCardInfo().getCardName().isBlank()
+					|| item.getCardInfo().getPackName() == null || item.getCardInfo().getPackName().isBlank()
+					|| item.getCardInfo().getRarity() == null
+					|| item.getCardInfo().getCondition() == null
+					|| item.getCardInfo().getRegulation() == null) {
 
-			redirectAttributes.addFlashAttribute(
-					"errorMessage",
-					"カード名・レアリティ・封入パック・状態・レギュレーションはすべて必須です。");
-			return "redirect:/items/new";
+				redirectAttributes.addFlashAttribute(
+						"errorMessage",
+						"カード名・レアリティ・封入パック・状態・レギュレーションはすべて必須です。");
+				return "redirect:/items/new";
+			}
+
+			// =========================
+			// ★ 超重要：CardInfo 側に Item をセット
+			// =========================
+			item.getCardInfo().setItem(item);
 		}
-
-		// =========================
-		// ★ 超重要：CardInfo 側に Item をセット
-		// =========================
-		item.getCardInfo().setItem(item);
 
 		// =========================
 		// 保存
@@ -386,11 +393,12 @@ public class ItemController {
 			@RequestParam("shippingRegion") ShippingRegion shippingRegion,
 			@RequestParam("shippingMethod") ShippingMethod shippingMethod,
 
-			@RequestParam("cardInfo.cardName") String cardName,
-			@RequestParam("cardInfo.packName") String packName,
-			@RequestParam("cardInfo.rarity") Rarity rarity,
-			@RequestParam("cardInfo.condition") CardCondition condition,
-			@RequestParam("cardInfo.regulation") Regulation regulation,
+			// ★ ここを required=false にして、カード以外でも 400 にならないようにする
+			@RequestParam(value = "cardInfo.cardName", required = false) String cardName,
+			@RequestParam(value = "cardInfo.packName", required = false) String packName,
+			@RequestParam(value = "cardInfo.rarity", required = false) Rarity rarity,
+			@RequestParam(value = "cardInfo.condition", required = false) CardCondition condition,
+			@RequestParam(value = "cardInfo.regulation", required = false) Regulation regulation,
 
 			RedirectAttributes redirectAttributes) {
 
@@ -428,20 +436,39 @@ public class ItemController {
 		existingItem.setShippingMethod(shippingMethod);
 
 		// =========================
-		// ★ カード情報更新（null なら作る）
+		// ★ カードカテゴリ以外なら CardInfo を消す（サーバ側安全対策）
 		// =========================
-		if (existingItem.getCardInfo() == null) {
-			existingItem.setCardInfo(new com.example.evolon.entity.CardInfo());
+		if (category.getName() == null || !"カード".equals(category.getName())) {
+			existingItem.setCardInfo(null);
+		} else {
+			// =========================
+			// ★ カードカテゴリなら cardInfo 必須（サーバ側でも守る）
+			// =========================
+			if (cardName == null || cardName.isBlank()
+					|| packName == null || packName.isBlank()
+					|| rarity == null
+					|| condition == null
+					|| regulation == null) {
+				redirectAttributes.addFlashAttribute(
+						"errorMessage",
+						"カード名・レアリティ・封入パック・状態・レギュレーションはすべて必須です。");
+				return "redirect:/items/{id}/edit";
+			}
+
+			// null なら作る
+			if (existingItem.getCardInfo() == null) {
+				existingItem.setCardInfo(new com.example.evolon.entity.CardInfo());
+			}
+
+			existingItem.getCardInfo().setCardName(cardName);
+			existingItem.getCardInfo().setPackName(packName);
+			existingItem.getCardInfo().setRarity(rarity);
+			existingItem.getCardInfo().setCondition(condition);
+			existingItem.getCardInfo().setRegulation(regulation);
+
+			// ownerセット（OneToOne）
 			existingItem.getCardInfo().setItem(existingItem);
 		}
-
-		existingItem.getCardInfo().setCardName(cardName);
-		existingItem.getCardInfo().setPackName(packName);
-		existingItem.getCardInfo().setRarity(rarity);
-		existingItem.getCardInfo().setCondition(condition);
-		existingItem.getCardInfo().setRegulation(regulation);
-
-		existingItem.getCardInfo().setItem(existingItem);
 
 		try {
 			itemService.saveItem(existingItem, imageFile);
@@ -542,17 +569,6 @@ public class ItemController {
 		return "redirect:/items/{id}";
 	}
 
-	/* =========================================================
-	 * private helper
-	 * ========================================================= */
-
-	/**
-	 * enum 変換を安全に行うヘルパー。
-	 * - null / 空文字 → null
-	 * - 不正な文字列 → null（IllegalArgumentException を握りつぶす）
-	 *
-	 * これを入れておくと、HTML 側の value が壊れていても検索が落ちずに動く。
-	 */
 	private <E extends Enum<E>> E parseEnumSafely(String value, Class<E> enumClass) {
 		if (value == null || value.isBlank()) {
 			return null;

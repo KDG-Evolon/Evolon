@@ -1,265 +1,237 @@
 <!DOCTYPE html>
-<html lang="ja"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head>
-    <meta charset="UTF-8">
-    <title th:text="${item.name} + ' - 商品詳細'">商品詳細</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+	<meta charset="UTF-8">
+	<title th:text="${item.name} + ' - 商品詳細'">商品詳細</title>
+	<link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 
 <body>
-<div class="container">
+	<div class="container">
 
-    <!-- ========================= -->
-    <!-- 商品名 -->
-    <!-- ========================= -->
-    <h1 th:text="${item.name}">商品名</h1>
+		<!-- ========================= -->
+		<!-- 商品名 -->
+		<!-- ========================= -->
+		<h1 th:text="${item.name}">商品名</h1>
 
-    <!-- ========================= -->
-    <!-- メッセージ -->
-    <!-- ========================= -->
-    <div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}"></div>
-    <div th:if="${successMessage}" class="success-message" th:text="${successMessage}"></div>
+		<!-- ========================= -->
+		<!-- メッセージ -->
+		<!-- ========================= -->
+		<div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}"></div>
+		<div th:if="${successMessage}" class="success-message" th:text="${successMessage}"></div>
 
-    <!-- ========================= -->
-    <!-- 商品詳細 -->
-    <!-- ========================= -->
-    <div class="item-detail">
+		<!-- ========================= -->
+		<!-- 商品詳細 -->
+		<!-- ========================= -->
+		<div class="item-detail">
 
-        <!-- 商品画像 -->
-        <img class="item-image"
-             th:if="${item.imageUrl != null}"
-             th:src="${item.imageUrl}"
-             alt="商品画像">
+			<!-- 商品画像 -->
+			<img class="item-image" th:if="${item.imageUrl != null}" th:src="${item.imageUrl}" alt="商品画像">
 
-        <img class="item-image"
-             th:if="${item.imageUrl == null}"
-             th:src="@{/images/placeholder.png}"
-             alt="商品画像">
+			<img class="item-image" th:if="${item.imageUrl == null}" th:src="@{/images/placeholder.png}" alt="商品画像">
 
-        <!-- 価格 -->
-        <p class="price">
-            価格：
-            <span th:text="'¥' + ${#numbers.formatDecimal(item.price,0,'COMMA',0,'POINT')}"></span>
-        </p>
+			<!-- 価格 -->
+			<p class="price">
+				価格：
+				<span th:text="'¥' + ${#numbers.formatDecimal(item.price,0,'COMMA',0,'POINT')}"></span>
+			</p>
 
-        <!-- 説明 -->
-        <p>
-            説明：
-            <span th:text="${item.description}"></span>
-        </p>
+			<!-- 説明 -->
+			<p>
+				説明：
+				<span th:text="${item.description}"></span>
+			</p>
 
-        <!-- カテゴリ -->
-        <p>
-            カテゴリ：
-            <span th:text="${item.category != null ? item.category.name : '未分類'}"></span>
-        </p>
+			<!-- カテゴリ -->
+			<p>
+				カテゴリ：
+				<span th:text="${item.category != null ? item.category.name : '未分類'}"></span>
+			</p>
 
-        <!-- 出品者 -->
-        <p>
-            出品者：
-            <span th:text="${item.seller.name}"></span>
-        </p>
+			<!-- 出品者 -->
+			<p>
+				出品者：
+				<span th:text="${item.seller.name}"></span>
+			</p>
 
-        <!-- ステータス -->
-        <p>
-            ステータス：
-            <span th:text="${item.status.label}"></span>
-        </p>
+			<!-- ステータス -->
+			<p>
+				ステータス：
+				<span th:text="${item.status.label}"></span>
+			</p>
 
-        <!-- ========================= -->
-        <!-- ★ カード情報 -->
-        <!-- ========================= -->
-        <div class="card-info-box" th:if="${item.cardInfo != null}">
-            <h2>カード情報</h2>
+			<!-- ========================= -->
+			<!-- ★ カード情報（カテゴリが「カード」の時だけ表示） -->
+			<!-- ========================= -->
+			<div th:if="${item.category != null and item.category.name eq 'カード'}">
 
-            <p>
-                カード名：
-                <span th:text="${item.cardInfo.cardName}">カード名</span>
-            </p>
+				<!-- cardInfo がある時 -->
+				<div class="card-info-box" th:if="${item.cardInfo != null}">
+					<h2>カード情報</h2>
 
-            <p>
-                レアリティ：
-                <span th:text="${item.cardInfo.rarity != null ? item.cardInfo.rarity.label : '-'}">レアリティ</span>
-            </p>
+					<p>
+						カード名：
+						<span th:text="${item.cardInfo.cardName}">カード名</span>
+					</p>
 
-            <p>
-                封入パック：
-                <span th:text="${item.cardInfo.packName}">封入パック</span>
-            </p>
+					<p>
+						レアリティ：
+						<span th:text="${item.cardInfo.rarity != null ? item.cardInfo.rarity.label : '-'}">レアリティ</span>
+					</p>
 
-            <p>
-                状態：
-                <span th:text="${item.cardInfo.condition != null ? item.cardInfo.condition.label : '-'}">状態</span>
-            </p>
+					<p>
+						封入パック：
+						<span th:text="${item.cardInfo.packName}">封入パック</span>
+					</p>
 
-            <p>
-                レギュレーション：
-                <span th:text="${item.cardInfo.regulation != null ? item.cardInfo.regulation.label : '-'}">レギュレーション</span>
-            </p>
-        </div>
+					<p>
+						状態：
+						<span
+							th:text="${item.cardInfo.condition != null ? item.cardInfo.condition.label : '-'}">状態</span>
+					</p>
 
-        <!-- cardInfo が無い商品向け（念のため） -->
-        <div class="card-info-box" th:if="${item.cardInfo == null}">
-            <h2>カード情報</h2>
-            <p>カード情報が登録されていません。</p>
-        </div>
+					<p>
+						レギュレーション：
+						<span
+							th:text="${item.cardInfo.regulation != null ? item.cardInfo.regulation.label : '-'}">レギュレーション</span>
+					</p>
+				</div>
 
-    </div>
+				<!-- cardInfo が無い時（カードカテゴリの時だけ表示） -->
+				<div class="card-info-box" th:if="${item.cardInfo == null}">
+					<h2>カード情報</h2>
+					<p>カード情報が登録されていません。</p>
+				</div>
 
-    <!-- ========================= -->
-    <!-- ボタン群 -->
-    <!-- ========================= -->
-    <div class="button-group">
+			</div>
 
-        <!-- ========================= -->
-        <!-- 購入ボタン（出品中 & 自分以外） -->
-        <!-- ========================= -->
-        <form sec:authorize="isAuthenticated()"
-              th:if="${item.status.name() == 'SELLING' and !isOwner}"
-              th:action="@{/orders/initiate}"
-              method="post"
-              onsubmit="return confirm('本当にこの商品を購入しますか？');">
+		</div>
 
-            <input type="hidden" name="itemId" th:value="${item.id}">
+		<!-- ========================= -->
+		<!-- ボタン群 -->
+		<!-- ========================= -->
+		<div class="button-group">
 
-            <!-- CSRF -->
-            <input type="hidden"
-                   th:name="${_csrf.parameterName}"
-                   th:value="${_csrf.token}">
+			<!-- ========================= -->
+			<!-- 購入ボタン（出品中 & 自分以外） -->
+			<!-- ========================= -->
+			<form sec:authorize="isAuthenticated()" th:if="${item.status.name() == 'SELLING' and !isOwner}"
+				th:action="@{/orders/initiate}" method="post" onsubmit="return confirm('本当にこの商品を購入しますか？');">
 
-            <button type="submit" class="button">
-                購入する
-            </button>
-        </form>
+				<input type="hidden" name="itemId" th:value="${item.id}">
 
-        <!-- ========================= -->
-        <!-- チャット -->
-        <!-- ========================= -->
-        <a th:href="@{/chat/{itemId}(itemId=${item.id})}"
-           class="button secondary">
-            チャットで質問 / 交渉
-        </a>
+				<!-- CSRF -->
+				<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-        <!-- ========================= -->
-        <!-- お気に入り（自分以外） -->
-        <!-- ========================= -->
-        <div sec:authorize="isAuthenticated()" th:if="${!isOwner}">
+				<button type="submit" class="button">
+					購入する
+				</button>
+			</form>
 
-            <form th:if="${isFavorited}"
-                  th:action="@{/items/{id}/unfavorite(id=${item.id})}"
-                  method="post"
-                  style="display:inline;">
+			<!-- ========================= -->
+			<!-- チャット -->
+			<!-- ========================= -->
+			<a th:href="@{/chat/{itemId}(itemId=${item.id})}" class="button secondary">
+				チャットで質問 / 交渉
+			</a>
 
-                <input type="hidden"
-                       th:name="${_csrf.parameterName}"
-                       th:value="${_csrf.token}">
+			<!-- ========================= -->
+			<!-- お気に入り（自分以外） -->
+			<!-- ========================= -->
+			<div sec:authorize="isAuthenticated()" th:if="${!isOwner}">
 
-                <button type="submit" class="button danger">
-                    お気に入り解除
-                </button>
-            </form>
+				<form th:if="${isFavorited}" th:action="@{/items/{id}/unfavorite(id=${item.id})}" method="post"
+					style="display:inline;">
 
-            <form th:unless="${isFavorited}"
-                  th:action="@{/items/{id}/favorite(id=${item.id})}"
-                  method="post"
-                  style="display:inline;">
+					<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-                <input type="hidden"
-                       th:name="${_csrf.parameterName}"
-                       th:value="${_csrf.token}">
+					<button type="submit" class="button danger">
+						お気に入り解除
+					</button>
+				</form>
 
-                <button type="submit" class="button">
-                    お気に入りに追加
-                </button>
-            </form>
-        </div>
+				<form th:unless="${isFavorited}" th:action="@{/items/{id}/favorite(id=${item.id})}" method="post"
+					style="display:inline;">
 
-        <!-- ========================= -->
-        <!-- ★ 出品者のみ：編集・削除 -->
-        <!-- ========================= -->
-        <div th:if="${isOwner}" style="display:inline;">
+					<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-            <!-- 編集 -->
-            <a th:href="@{/items/{id}/edit(id=${item.id})}"
-               class="button primary">
-                編集する
-            </a>
+					<button type="submit" class="button">
+						お気に入りに追加
+					</button>
+				</form>
+			</div>
 
-            <!-- 削除 -->
-            <form th:action="@{/items/{id}/delete(id=${item.id})}"
-                  method="post"
-                  style="display:inline;"
-                  onsubmit="return confirm('本当に削除しますか？');">
+			<!-- ========================= -->
+			<!-- ★ 出品者のみ：編集・削除 -->
+			<!-- ========================= -->
+			<div th:if="${isOwner}" style="display:inline;">
 
-                <input type="hidden"
-                       th:name="${_csrf.parameterName}"
-                       th:value="${_csrf.token}">
+				<!-- 編集 -->
+				<a th:href="@{/items/{id}/edit(id=${item.id})}" class="button primary">
+					編集する
+				</a>
 
-                <button type="submit" class="button danger">
-                    削除する
-                </button>
-            </form>
+				<!-- 削除 -->
+				<form th:action="@{/items/{id}/delete(id=${item.id})}" method="post" style="display:inline;"
+					onsubmit="return confirm('本当に削除しますか？');">
 
-        </div>
-    </div>
+					<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-    <!-- ========================= -->
-    <!-- チャット一覧 -->
-    <!-- ========================= -->
-    <h2>チャット</h2>
+					<button type="submit" class="button danger">
+						削除する
+					</button>
+				</form>
 
-    <div class="chat-box">
+			</div>
+		</div>
 
-        <div th:each="chat : ${chats}"
-             class="chat-message"
-             th:classappend="${isOwner 
+		<!-- ========================= -->
+		<!-- チャット一覧 -->
+		<!-- ========================= -->
+		<h2>チャット</h2>
+
+		<div class="chat-box">
+
+			<div th:each="chat : ${chats}" class="chat-message" th:classappend="${isOwner 
                 or (chat.sender != null and chat.sender.email != null and chat.sender.email != #authentication.name)
                 ? 'other-message' : 'my-message'}">
 
-            <span class="sender-name" th:text="${chat.sender.name}"></span>
-            <span class="message-time"
-                  th:text="${#temporals.format(chat.createdAt,'yyyy/MM/dd HH:mm')}"></span>
-            <p th:text="${chat.message}"></p>
-        </div>
+				<span class="sender-name" th:text="${chat.sender.name}"></span>
+				<span class="message-time" th:text="${#temporals.format(chat.createdAt,'yyyy/MM/dd HH:mm')}"></span>
+				<p th:text="${chat.message}"></p>
+			</div>
 
-        <div th:if="${#lists.isEmpty(chats)}">
-            <p>まだチャットメッセージはありません。</p>
-        </div>
-    </div>
+			<div th:if="${#lists.isEmpty(chats)}">
+				<p>まだチャットメッセージはありません。</p>
+			</div>
+		</div>
 
-    <!-- ========================= -->
-    <!-- チャット送信 -->
-    <!-- ========================= -->
-    <form sec:authorize="isAuthenticated()"
-          th:action="@{/chat/{itemId}(itemId=${item.id})}"
-          method="post"
-          class="chat-form">
+		<!-- ========================= -->
+		<!-- チャット送信 -->
+		<!-- ========================= -->
+		<form sec:authorize="isAuthenticated()" th:action="@{/chat/{itemId}(itemId=${item.id})}" method="post"
+			class="chat-form">
 
-        <textarea name="message"
-                  placeholder="メッセージを入力してください"
-                  required></textarea>
+			<textarea name="message" placeholder="メッセージを入力してください" required></textarea>
 
-        <input type="hidden"
-               th:name="${_csrf.parameterName}"
-               th:value="${_csrf.token}">
+			<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-        <button type="submit">
-            送信
-        </button>
-    </form>
+			<button type="submit">
+				送信
+			</button>
+		</form>
 
-    <!-- ========================= -->
-    <!-- 戻る -->
-    <!-- ========================= -->
-    <div class="button-group">
-        <a th:href="@{/items}" class="button secondary">
-            商品一覧に戻る
-        </a>
-    </div>
+		<!-- ========================= -->
+		<!-- 戻る -->
+		<!-- ========================= -->
+		<div class="button-group">
+			<a th:href="@{/items}" class="button secondary">
+				商品一覧に戻る
+			</a>
+		</div>
 
-</div>
+	</div>
 </body>
+
 </html>

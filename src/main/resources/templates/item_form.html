@@ -2,197 +2,221 @@
 <html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head>
-    <meta charset="UTF-8">
-    <!-- ページタイトルは出品か編集かで切り替え -->
-    <title th:text="${item.id == null ? '商品出品' : '商品編集'}"></title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+	<meta charset="UTF-8">
+	<!-- ページタイトルは出品か編集かで切り替え -->
+	<title th:text="${item.id == null ? '商品出品' : '商品編集'}"></title>
+	<link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 
 <body>
-    <div class="container">
+	<div class="container">
 
-        <!-- ページ見出しも出品か編集かで切り替え -->
-        <h1 th:text="${item.id == null ? '商品出品' : '商品編集'}"></h1>
+		<!-- ページ見出しも出品か編集かで切り替え -->
+		<h1 th:text="${item.id == null ? '商品出品' : '商品編集'}"></h1>
 
-        <!-- エラーメッセージ表示 -->
-        <div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}"></div>
+		<!-- エラーメッセージ表示 -->
+		<div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}"></div>
 
-        <!-- フォーム開始: 新規出品は /items へ、編集は /items/{id} へ -->
-        <form th:action="${item.id == null ? '/items' : '/items/' + item.id}" method="post"
-              enctype="multipart/form-data">
+		<!-- フォーム開始: 新規出品は /items へ、編集は /items/{id} へ -->
+		<form th:action="${item.id == null ? '/items' : '/items/' + item.id}" method="post"
+			enctype="multipart/form-data">
 
-            <!-- PUT メソッドが必要な場合は hidden で送信 -->
-            <input type="hidden" th:if="${item.id != null}" name="_method" value="put">
+			<!-- PUT メソッドが必要な場合は hidden で送信 -->
+			<input type="hidden" th:if="${item.id != null}" name="_method" value="put">
 
-            <!-- ========================= -->
-            <!-- 基本情報入力欄 -->
-            <!-- ========================= -->
+			<!-- ========================= -->
+			<!-- 基本情報入力欄 -->
+			<!-- ========================= -->
 
-            <!-- 商品名 -->
-            <p>
-                <label for="name">商品名:</label>
-                <input type="text" id="name" name="name" th:value="${item.name}" required>
-            </p>
-
-            <!-- 商品説明 -->
-            <p>
-                <label for="description">商品説明:</label>
-                <textarea id="description" name="description" th:text="${item.description}"></textarea>
-            </p>
-
-            <!-- 価格 -->
-            <p>
-                <label for="price">価格 (¥):</label>
-                <input type="number" id="price" name="price" th:value="${item.price}" step="0.01" required>
-            </p>
-
-            <!-- 発送目安 -->
-            <p>
-                <label for="shippingDuration">発送目安:</label>
-                <select id="shippingDuration" name="shippingDuration" required>
-                    <option value="">選択してください</option>
-                    <option th:each="sd : ${shippingDurations}"
-                            th:value="${sd.name()}"
-                            th:text="${sd.label}"
-                            th:selected="${item.shippingDuration == sd}">
-                    </option>
-                </select>
-            </p>
-
-            <!-- 送料負担 -->
-            <p>
-                <label for="shippingFeeBurden">送料負担:</label>
-                <select id="shippingFeeBurden" name="shippingFeeBurden" required>
-                    <option value="">選択してください</option>
-                    <option th:each="fb : ${shippingFeeBurdens}"
-                            th:value="${fb.name()}"
-                            th:text="${fb.label}"
-                            th:selected="${item.shippingFeeBurden == fb}">
-                    </option>
-                </select>
-            </p>
-
-            <!-- 発送地域 -->
-            <p>
-                <label for="shippingRegion">発送地域:</label>
-                <select id="shippingRegion" name="shippingRegion" required>
-                    <option value="">選択してください</option>
-                    <option th:each="region : ${shippingRegions}"
-                            th:value="${region.name()}"
-                            th:text="${region.label}"
-                            th:selected="${item.shippingRegion == region}">
-                    </option>
-                </select>
-            </p>
-
-            <!-- 発送方法 -->
-            <p>
-                <label for="shippingMethod">発送方法:</label>
-                <select id="shippingMethod" name="shippingMethod" required>
-                    <option value="">選択してください</option>
-                    <option th:each="method : ${shippingMethods}"
-                            th:value="${method.name()}"
-                            th:text="${method.label}"
-                            th:selected="${item.shippingMethod == method}">
-                    </option>
-                </select>
-            </p>
-
-            <!-- カテゴリ -->
-            <p>
-                <label for="categoryId">カテゴリ:</label>
-                <select id="categoryId" name="categoryId" required>
-                    <option value="">選択してください</option>
-                    <option th:each="category : ${categories}" 
-                            th:value="${category.id}" 
-                            th:text="${category.name}"
-                            th:selected="${item.category != null and item.category.id == category.id}">
-                    </option>
-                </select>
-            </p>
-
-            <!-- 画像アップロード -->
-            <p>
-                <label for="image">商品画像:</label>
-                <input type="file" id="image" name="image" accept="image/*">
-                <!-- 既存画像がある場合は表示 -->
-                <span th:if="${item.imageUrl}">
-                    現在の画像:
-                    <img th:src="${item.imageUrl}" style="width:100px; height:auto;">
-                </span>
-            </p>
-
-            <!-- ========================= -->
-            <!-- ★ カード情報入力欄 -->
-
-			<!-- カード名 -->
+			<!-- 商品名 -->
 			<p>
-			  <label for="cardName">カード名:</label>
-			  <input type="text" id="cardName" name="cardInfo.cardName"
-			         th:value="${item.cardInfo != null ? item.cardInfo.cardName : ''}"
-			         required>
+				<label for="name">商品名:</label>
+				<input type="text" id="name" name="name" th:value="${item.name}" required>
 			</p>
 
-			<!-- レアリティ -->
+			<!-- 商品説明 -->
 			<p>
-			  <label for="rarity">レアリティ:</label>
-			  <select id="rarity" name="cardInfo.rarity" required>
-			    <option value="" selected>選択してください</option>
-			    <option th:each="r : ${rarities}"
-			            th:value="${r.name()}"
-			            th:text="${r.label}"
-			            th:selected="${item.cardInfo != null ? item.cardInfo.rarity == r : false}">
-			    </option>
-			  </select>
+				<label for="description">商品説明:</label>
+				<textarea id="description" name="description" th:text="${item.description}"></textarea>
 			</p>
 
-			<!-- 封入パック -->
+			<!-- 価格 -->
 			<p>
-			  <label for="packName">封入パック:</label>
-			  <input type="text" id="packName" name="cardInfo.packName"
-			         th:value="${item.cardInfo != null ? item.cardInfo.packName : ''}"
-			         required>
+				<label for="price">価格 (¥):</label>
+				<input type="number" id="price" name="price" th:value="${item.price}" step="0.01" required>
 			</p>
 
-			<!-- 状態 -->
+			<!-- 発送目安 -->
 			<p>
-			  <label for="condition">状態:</label>
-			  <select id="condition" name="cardInfo.condition" required>
-			    <option value="" selected>選択してください</option>
-			    <option th:each="c : ${conditions}"
-			            th:value="${c.name()}"
-			            th:text="${c.label}"
-			            th:selected="${item.cardInfo != null ? item.cardInfo.condition == c : false}">
-			    </option>
-			  </select>
+				<label for="shippingDuration">発送目安:</label>
+				<select id="shippingDuration" name="shippingDuration" required>
+					<option value="">選択してください</option>
+					<option th:each="sd : ${shippingDurations}" th:value="${sd.name()}" th:text="${sd.label}"
+						th:selected="${item.shippingDuration == sd}">
+					</option>
+				</select>
 			</p>
 
-			<!-- レギュレーション -->
+			<!-- 送料負担 -->
 			<p>
-			  <label for="regulation">レギュレーション:</label>
-			  <select id="regulation" name="cardInfo.regulation" required>
-			    <option value="" selected>選択してください</option>
-			    <option th:each="r : ${regulations}"
-			            th:value="${r.name()}"
-			            th:text="${r.label}"
-			            th:selected="${item.cardInfo != null ? item.cardInfo.regulation == r : false}">
-			    </option>
-			  </select>
+				<label for="shippingFeeBurden">送料負担:</label>
+				<select id="shippingFeeBurden" name="shippingFeeBurden" required>
+					<option value="">選択してください</option>
+					<option th:each="fb : ${shippingFeeBurdens}" th:value="${fb.name()}" th:text="${fb.label}"
+						th:selected="${item.shippingFeeBurden == fb}">
+					</option>
+				</select>
 			</p>
 
+			<!-- 発送地域 -->
+			<p>
+				<label for="shippingRegion">発送地域:</label>
+				<select id="shippingRegion" name="shippingRegion" required>
+					<option value="">選択してください</option>
+					<option th:each="region : ${shippingRegions}" th:value="${region.name()}" th:text="${region.label}"
+						th:selected="${item.shippingRegion == region}">
+					</option>
+				</select>
+			</p>
 
-            <!-- ========================= -->
-            <!-- ボタン群 -->
-            <!-- ========================= -->
-            <div class="button-group">
-                <button type="submit" class="button primary" 
-                        th:text="${item.id == null ? '出品する' : '更新する'}">
-                </button>
-                <a th:href="@{/items}" class="button secondary">キャンセル</a>
-            </div>
-        </form>
+			<!-- 発送方法 -->
+			<p>
+				<label for="shippingMethod">発送方法:</label>
+				<select id="shippingMethod" name="shippingMethod" required>
+					<option value="">選択してください</option>
+					<option th:each="method : ${shippingMethods}" th:value="${method.name()}" th:text="${method.label}"
+						th:selected="${item.shippingMethod == method}">
+					</option>
+				</select>
+			</p>
 
-    </div>
+			<!-- カテゴリ -->
+			<p>
+				<label for="categoryId">カテゴリ:</label>
+				<select id="categoryId" name="categoryId" required>
+					<option value="">選択してください</option>
+					<option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}"
+						th:selected="${item.category != null and item.category.id == category.id}">
+					</option>
+				</select>
+			</p>
+
+			<!-- 画像アップロード -->
+			<p>
+				<label for="image">商品画像:</label>
+				<input type="file" id="image" name="image" accept="image/*">
+				<!-- 既存画像がある場合は表示 -->
+				<span th:if="${item.imageUrl}">
+					現在の画像:
+					<img th:src="${item.imageUrl}" style="width:100px; height:auto;">
+				</span>
+			</p>
+
+			<!-- ========================= -->
+			<!-- ★ カード情報入力欄 -->
+			<div id="cardFields">
+
+				<!-- カード名 -->
+				<p>
+					<label for="cardName">カード名:</label>
+					<input type="text" id="cardName" name="cardInfo.cardName"
+						th:value="${item.cardInfo != null ? item.cardInfo.cardName : ''}" required>
+				</p>
+
+				<!-- レアリティ -->
+				<p>
+					<label for="rarity">レアリティ:</label>
+					<select id="rarity" name="cardInfo.rarity" required>
+						<option value="" selected>選択してください</option>
+						<option th:each="r : ${rarities}" th:value="${r.name()}" th:text="${r.label}"
+							th:selected="${item.cardInfo != null ? item.cardInfo.rarity == r : false}">
+						</option>
+					</select>
+				</p>
+
+				<!-- 封入パック -->
+				<p>
+					<label for="packName">封入パック:</label>
+					<input type="text" id="packName" name="cardInfo.packName"
+						th:value="${item.cardInfo != null ? item.cardInfo.packName : ''}" required>
+				</p>
+
+				<!-- 状態 -->
+				<p>
+					<label for="condition">状態:</label>
+					<select id="condition" name="cardInfo.condition" required>
+						<option value="" selected>選択してください</option>
+						<option th:each="c : ${conditions}" th:value="${c.name()}" th:text="${c.label}"
+							th:selected="${item.cardInfo != null ? item.cardInfo.condition == c : false}">
+						</option>
+					</select>
+				</p>
+
+				<!-- レギュレーション -->
+				<p>
+					<label for="regulation">レギュレーション:</label>
+					<select id="regulation" name="cardInfo.regulation" required>
+						<option value="" selected>選択してください</option>
+						<option th:each="r : ${regulations}" th:value="${r.name()}" th:text="${r.label}"
+							th:selected="${item.cardInfo != null ? item.cardInfo.regulation == r : false}">
+						</option>
+					</select>
+				</p>
+			</div>
+
+
+			<!-- ========================= -->
+			<!-- ボタン群 -->
+			<!-- ========================= -->
+			<div class="button-group">
+				<button type="submit" class="button primary" th:text="${item.id == null ? '出品する' : '更新する'}">
+				</button>
+				<a th:href="@{/items}" class="button secondary">キャンセル</a>
+			</div>
+		</form>
+
+	</div>
+	<script>
+		function toggleCardFields() {
+			const categorySelect = document.getElementById('categoryId');
+			const cardFields = document.getElementById('cardFields');
+			if (!categorySelect || !cardFields) return;
+
+			const selectedText = categorySelect.options[categorySelect.selectedIndex]?.text?.trim();
+			const isCard = (selectedText === 'カード');
+
+			cardFields.style.display = isCard ? 'block' : 'none';
+
+			const cardName = document.getElementById('cardName');
+			const packName = document.getElementById('packName');
+			const rarity = document.getElementById('rarity');
+			const condition = document.getElementById('condition');
+			const regulation = document.getElementById('regulation');
+
+			// required切り替え
+			cardName.required = isCard;
+			packName.required = isCard;
+			rarity.required = isCard;
+			condition.required = isCard;
+			regulation.required = isCard;
+
+			// カードじゃないなら値もクリア（送信されないように）
+			if (!isCard) {
+				cardName.value = '';
+				packName.value = '';
+				rarity.value = '';
+				condition.value = '';
+				regulation.value = '';
+			}
+		}
+
+		document.addEventListener('DOMContentLoaded', () => {
+			toggleCardFields();
+			document.getElementById('categoryId')?.addEventListener('change', toggleCardFields);
+		});
+	</script>
+
+
 </body>
 
 </html>
