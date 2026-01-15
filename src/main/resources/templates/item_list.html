@@ -1,176 +1,153 @@
 <!-- HTML5 文書であることを宣言 -->
 <!DOCTYPE html>
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>商品一覧</title>
 
-    <!-- 共通CSS -->
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+<head>
+	<meta charset="UTF-8">
+	<title>商品一覧</title>
+
+	<!-- 共通CSS -->
+	<link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 
 <body>
-<div class="container">
+	<div class="container">
 
-    <!-- ========================= -->
-    <!-- ページタイトル -->
-    <!-- ========================= -->
-    <h1>商品一覧</h1>
+		<!-- ========================= -->
+		<!-- ページタイトル -->
+		<!-- ========================= -->
+		<h1>商品一覧</h1>
 
-    <!-- ========================= -->
-    <!-- ナビゲーション -->
-    <!-- ========================= -->
-    <div class="main-nav">
-        <a th:href="@{/items/new}" class="button">商品を出品</a>
-        <a th:href="@{/my-page}" class="button">マイページ</a>
+		<!-- ========================= -->
+		<!-- ナビゲーション -->
+		<!-- ========================= -->
+		<div class="main-nav">
+			<a th:href="@{/items/new}" class="button">商品を出品</a>
+			<a th:href="@{/my-page}" class="button">マイページ</a>
 
-        <form th:action="@{/logout}" method="post" style="display:inline;">
-            <button type="submit" class="button secondary">ログアウト</button>
-        </form>
-    </div>
+			<form th:action="@{/logout}" method="post" style="display:inline;">
+				<button type="submit" class="button secondary">ログアウト</button>
+			</form>
+		</div>
 
-	<!-- ========================= -->
-	<!-- 検索フォーム -->
-	<!-- ========================= -->
-	<form th:action="@{/items/search}" method="get" class="filter-form">
+		<!-- ========================= -->
+		<!-- 検索フォーム -->
+		<!-- ========================= -->
+		<form th:action="@{/items/search}" method="get" class="filter-form">
 
-	  <!-- カード名 -->
-	  <div>
-	    <label>カード名</label>
-	    <input type="text" name="cardName" th:value="${param.cardName}">
-	  </div>
+			<!-- カード名 -->
+			<div>
+				<label>カード名</label>
+				<input type="text" name="cardName" th:value="${param.cardName}">
+			</div>
 
-	  <!-- レアリティ -->
-	  <div>
-	    <label>レアリティ</label>
-	    <select name="rarity">
-	      <option value="">全て</option>
+			<!-- レアリティ -->
+			<div>
+				<label>レアリティ</label>
+				<select name="rarity">
+					<option value="">全て</option>
 
-	      <!-- ★ value は enum の name()（= Rarity.valueOf で変換できる値）にする -->
-	      <option th:each="r : ${rarities}"
-	              th:value="${r.name()}"
-	              th:text="${r.label}"
-	              th:selected="${param.rarity != null and param.rarity[0] == r.name()}">
-	      </option>
-	    </select>
-	  </div>
+					<!-- ★ value は enum の name()（= Rarity.valueOf で変換できる値）にする -->
+					<option th:each="r : ${rarities}" th:value="${r.name()}" th:text="${r.label}"
+						th:selected="${param.rarity != null and param.rarity[0] == r.name()}">
+					</option>
+				</select>
+			</div>
 
-	  <!-- レギュレーション -->
-	  <div>
-	    <label>レギュレーション</label>
-	    <select name="regulation">
-	      <option value="">全て</option>
+			<!-- レギュレーション -->
+			<div>
+				<label>レギュレーション</label>
+				<select name="regulation">
+					<option value="">全て</option>
 
-	      <!-- ★ value は enum の name() -->
-	      <option th:each="r : ${regulations}"
-	              th:value="${r.name()}"
-	              th:text="${r.label}"
-	              th:selected="${param.regulation != null and param.regulation[0] == r.name()}">
-	      </option>
-	    </select>
-	  </div>
+					<!-- ★ value は enum の name() -->
+					<option th:each="r : ${regulations}" th:value="${r.name()}" th:text="${r.label}"
+						th:selected="${param.regulation != null and param.regulation[0] == r.name()}">
+					</option>
+				</select>
+			</div>
 
-	  <!-- 封入パック -->
-	  <div>
-	    <label>封入パック</label>
-	    <input type="text" name="packName" th:value="${param.packName}">
-	  </div>
+			<!-- 封入パック -->
+			<div>
+				<label>封入パック</label>
+				<input type="text" name="packName" th:value="${param.packName}">
+			</div>
 
-	  <!-- 状態 -->
-	  <div>
-	    <label>状態</label>
-	    <select name="condition">
-	      <option value="">全て</option>
+			<!-- 状態 -->
+			<div>
+				<label>状態</label>
+				<select name="condition">
+					<option value="">全て</option>
 
-	      <!-- ★ value は enum の name() -->
-	      <option th:each="c : ${conditions}"
-	              th:value="${c.name()}"
-	              th:text="${c.label}"
-	              th:selected="${param.condition != null and param.condition[0] == c.name()}">
-	      </option>
-	    </select>
-	  </div>
+					<!-- ★ value は enum の name() -->
+					<option th:each="c : ${conditions}" th:value="${c.name()}" th:text="${c.label}"
+						th:selected="${param.condition != null and param.condition[0] == c.name()}">
+					</option>
+				</select>
+			</div>
 
-	  <!-- 価格 -->
-	  <div>
-	    <label>価格</label>
-	    <input type="number" name="minPrice" placeholder="最小" th:value="${param.minPrice}">
-	    〜
-	    <input type="number" name="maxPrice" placeholder="最大" th:value="${param.maxPrice}">
-	  </div>
+			<!-- 価格 -->
+			<div>
+				<label>価格</label>
+				<input type="number" name="minPrice" placeholder="最小" th:value="${param.minPrice}">
+				〜
+				<input type="number" name="maxPrice" placeholder="最大" th:value="${param.maxPrice}">
+			</div>
 
-	  <!-- 並び替え -->
-	  <div>
-	    <label>並び替え</label>
-	    <select name="sort">
-	      <option value="new" th:selected="${param.sort == null or param.sort[0] == 'new'}">新着順</option>
-	      <option value="priceAsc" th:selected="${param.sort != null and param.sort[0] == 'priceAsc'}">価格昇順</option>
-	      <option value="priceDesc" th:selected="${param.sort != null and param.sort[0] == 'priceDesc'}">価格降順</option>
-	    </select>
-	  </div>
+			<!-- 並び替え -->
+			<div>
+				<label>並び替え</label>
+				<select name="sort">
+					<option value="new" th:selected="${param.sort == null or param.sort[0] == 'new'}">新着順</option>
+					<option value="priceAsc" th:selected="${param.sort != null and param.sort[0] == 'priceAsc'}">価格昇順
+					</option>
+					<option value="priceDesc" th:selected="${param.sort != null and param.sort[0] == 'priceDesc'}">価格降順
+					</option>
+				</select>
+			</div>
 
-	  <!-- 検索 -->
-	  <button type="submit" class="button">検索</button>
-	</form>
+			<!-- 検索 -->
+			<button type="submit" class="button">検索</button>
+		</form>
 
 
-    <!-- ========================= -->
-    <!-- 商品一覧 -->
-    <!-- ========================= -->
-    <div class="item-grid">
+		<!-- ========================= -->
+		<!-- 商品一覧 -->
+		<!-- ========================= -->
+		<div class="item-grid">
 
-        <!-- 商品1件 -->
-        <div class="item-card" th:each="item : ${items.content}">
-            <a th:href="@{/items/{id}(id=${item.id})}">
+			<!-- 商品1件 -->
+			<div class="item-card" th:each="item : ${items.content}">
+				<a th:href="@{/items/{id}(id=${item.id})}">
 
-                <!-- 画像 -->
-                <img th:if="${item.imageUrl != null}" th:src="${item.imageUrl}">
-                <img th:if="${item.imageUrl == null}" th:src="@{/images/placeholder.png}">
+					<!-- 画像 -->
+					<img th:if="${item.imageUrl != null}" th:src="${item.imageUrl}">
+					<img th:if="${item.imageUrl == null}" th:src="@{/images/placeholder.png}">
 
-                <!-- 商品名 -->
-                <h3 th:text="${item.name}"></h3>
+					<!-- 商品名 -->
+					<h3 th:text="${item.name}"></h3>
 
-                <!-- ========================= -->
-                <!-- ★ カード情報（null対策） -->
-                <!-- ========================= -->
+					<!-- 価格 -->
+					<p class="price" th:text="'¥' + ${#numbers.formatDecimal(item.price,0,'COMMA',0,'POINT')}">
+					</p>
 
-                <!-- cardInfo が存在する場合 -->
-                <div th:if="${item.cardInfo != null}">
-                    <p th:text="'カード名：' + ${item.cardInfo.cardName}"></p>
-                    <p th:text="'レアリティ：' + ${item.cardInfo.rarity.label}"></p>
-                    <p th:text="'状態：' + ${item.cardInfo.condition.label}"></p>
-                    <p th:text="'レギュレーション：' + ${item.cardInfo.regulation.label}"></p>
-                    <p th:text="'封入パック：' + ${item.cardInfo.packName != null ? item.cardInfo.packName : ''}"></p>
-                </div>
+					<!-- ステータス -->
+					<p>SELLING</p>
+				</a>
+			</div>
 
-                <!-- cardInfo が未登録の場合 -->
-                <div th:if="${item.cardInfo == null}">
-                    <p>カード情報：未登録</p>
-                </div>
+			<!-- 検索結果なし -->
+			<div th:if="${items.totalElements == 0}">
+				<p>商品が見つかりませんでした。</p>
+			</div>
+		</div>
 
-                <!-- 価格 -->
-                <p class="price"
-                   th:text="'¥' + ${#numbers.formatDecimal(item.price,0,'COMMA',0,'POINT')}">
-                </p>
+		<!-- ========================= -->
+		<!-- ページネーション（検索条件保持） -->
+		<!-- ========================= -->
+		<div class="pagination">
 
-                <!-- ステータス -->
-                <p th:text="${item.status}"></p>
-            </a>
-        </div>
-
-        <!-- 検索結果なし -->
-        <div th:if="${items.totalElements == 0}">
-            <p>商品が見つかりませんでした。</p>
-        </div>
-    </div>
-
-    <!-- ========================= -->
-    <!-- ページネーション（検索条件保持） -->
-    <!-- ========================= -->
-    <div class="pagination">
-
-        <a th:if="${items.hasPrevious()}"
-           th:href="@{/items/search(
+			<a th:if="${items.hasPrevious()}" th:href="@{/items/search(
                 page=${items.number - 1},
                 cardName=${param.cardName},
                 rarity=${param.rarity},
@@ -181,12 +158,11 @@
                 maxPrice=${param.maxPrice},
                 sort=${param.sort}
            )}">
-            前へ
-        </a>
+				前へ
+			</a>
 
-        <span th:each="i : ${#numbers.sequence(0, items.totalPages - 1)}">
-            <a th:if="${i != items.number}"
-               th:href="@{/items/search(
+			<span th:each="i : ${#numbers.sequence(0, items.totalPages - 1)}">
+				<a th:if="${i != items.number}" th:href="@{/items/search(
                     page=${i},
                     cardName=${param.cardName},
                     rarity=${param.rarity},
@@ -196,18 +172,14 @@
                     minPrice=${param.minPrice},
                     maxPrice=${param.maxPrice},
                     sort=${param.sort}
-               )}"
-               th:text="${i + 1}">
-            </a>
+               )}" th:text="${i + 1}">
+				</a>
 
-            <span th:if="${i == items.number}"
-                  class="current-page"
-                  th:text="${i + 1}">
-            </span>
-        </span>
+				<span th:if="${i == items.number}" class="current-page" th:text="${i + 1}">
+				</span>
+			</span>
 
-        <a th:if="${items.hasNext()}"
-           th:href="@{/items/search(
+			<a th:if="${items.hasNext()}" th:href="@{/items/search(
                 page=${items.number + 1},
                 cardName=${param.cardName},
                 rarity=${param.rarity},
@@ -218,10 +190,11 @@
                 maxPrice=${param.maxPrice},
                 sort=${param.sort}
            )}">
-            次へ
-        </a>
-    </div>
+				次へ
+			</a>
+		</div>
 
-</div>
+	</div>
 </body>
+
 </html>
