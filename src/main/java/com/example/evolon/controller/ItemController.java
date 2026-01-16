@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 // クエリ/フォームのパラメタ取得用 import
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 // 画像アップロードのための MultipartFile の import
 import org.springframework.web.multipart.MultipartFile;
 // リダイレクト時にメッセージを渡すための import
@@ -43,12 +44,16 @@ import com.example.evolon.domain.enums.ShippingDuration;
 import com.example.evolon.domain.enums.ShippingFeeBurden;
 import com.example.evolon.domain.enums.ShippingMethod;
 import com.example.evolon.domain.enums.ShippingRegion;
+import com.example.evolon.dto.CardAutoFillResponse;
+import com.example.evolon.dto.ParsedCardNumber;
 // カテゴリエンティティの import
 import com.example.evolon.entity.Category;
 // 商品エンティティの import
 import com.example.evolon.entity.Item;
 // ユーザエンティティの import
 import com.example.evolon.entity.User;
+import com.example.evolon.service.CardMasterService;
+import com.example.evolon.service.CardNumberParserService;
 // カテゴリ関連サービスの import
 import com.example.evolon.service.CategoryService;
 // チャット関連サービスの import
@@ -57,6 +62,7 @@ import com.example.evolon.service.ChatService;
 import com.example.evolon.service.FavoriteService;
 // 商品関連サービスの import
 import com.example.evolon.service.ItemService;
+import com.example.evolon.service.RegulationService;
 // レビュー関連サービスの import
 import com.example.evolon.service.ReviewService;
 // ユーザ関連サービスの import
@@ -81,6 +87,10 @@ public class ItemController {
 	// レビューサービスへの参照
 	private final ReviewService reviewService;
 
+	private final CardNumberParserService cardNumberParserService;
+	private final CardMasterService cardMasterService;
+	private final RegulationService regulationService;
+
 	// 依存関係をコンストラクタインジェクションで受け取る
 	public ItemController(
 			ItemService itemService,
@@ -88,7 +98,10 @@ public class ItemController {
 			UserService userService,
 			ChatService chatService,
 			FavoriteService favoriteService,
-			ReviewService reviewService) {
+			ReviewService reviewService,
+			CardNumberParserService cardNumberParserService,
+			CardMasterService cardMasterService,
+			RegulationService regulationService) {
 
 		this.itemService = itemService;
 		this.categoryService = categoryService;
@@ -96,6 +109,9 @@ public class ItemController {
 		this.chatService = chatService;
 		this.favoriteService = favoriteService;
 		this.reviewService = reviewService;
+		this.cardNumberParserService = cardNumberParserService;
+		this.cardMasterService = cardMasterService;
+		this.regulationService = regulationService;
 	}
 
 	/* =========================================================
@@ -256,6 +272,25 @@ public class ItemController {
 
 		// 入力フォームのテンプレート名
 		return "item_form";
+	}
+
+	@GetMapping("/auto-fill")
+	@ResponseBody
+	public CardAutoFillResponse autoFill(@RequestParam String text) {
+
+		ParsedCardNumber parsed = cardNumberParserService.parse(text);
+
+		return cardMasterService.findByParsedNumber(parsed)
+				.map(cm -> {
+					Regulation reg = regulationService.resolve(cm.getPrintedRegulation());
+
+					return new CardAutoFillResponse(
+							cm.getCardName(),
+							cm.getRarity(),
+							cm.getPackName(),
+							reg);
+				})
+				.orElse(null);
 	}
 
 	/* =========================================================
@@ -580,4 +615,5 @@ public class ItemController {
 			return null;
 		}
 	}
+
 }

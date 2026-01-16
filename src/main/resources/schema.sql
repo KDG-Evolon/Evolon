@@ -10,6 +10,7 @@ DROP TABLE IF EXISTS review_stats CASCADE;
 DROP TABLE IF EXISTS user_complaint CASCADE;
 DROP TABLE IF EXISTS inquiry CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS card_master CASCADE;
 
 -- ========== USERS ==========
 CREATE TABLE users (
@@ -186,6 +187,20 @@ CREATE TABLE inquiry (
 
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+CREATE TABLE  card_master (
+    id SERIAL PRIMARY KEY,
+    set_code VARCHAR(20) NOT NULL,
+    card_number VARCHAR(20) NOT NULL,
+    card_name VARCHAR(255) NOT NULL,
+    pack_name VARCHAR(255),
+    rarity VARCHAR(50) NOT NULL,
+    printed_regulation VARCHAR(5) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (set_code, card_number)
+);
+
+
 
 -- ========== INDEX ==========
 CREATE INDEX idx_item_user_id ON item(user_id);

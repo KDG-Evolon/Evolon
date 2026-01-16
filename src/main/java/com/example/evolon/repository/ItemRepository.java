@@ -96,4 +96,5 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
 	// 最近の出品商品
 	List<Item> findTop5ByOrderByCreatedAtDesc();
+
 }

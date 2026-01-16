@@ -13,10 +13,6 @@
 
 		<!-- ページ見出しも出品か編集かで切り替え -->
 		<h1 th:text="${item.id == null ? '商品出品' : '商品編集'}"></h1>
-
-		<!-- エラーメッセージ表示 -->
-		<div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}"></div>
-
 		<!-- フォーム開始: 新規出品は /items へ、編集は /items/{id} へ -->
 		<form th:action="${item.id == null ? '/items' : '/items/' + item.id}" method="post"
 			enctype="multipart/form-data">
@@ -117,6 +113,13 @@
 			<div id="cardFields">
 
 				<!-- カード名 -->
+				<!-- カード番号入力（自動入力用） -->
+				<p>
+				  <label for="cardNumberText">カード番号:</label>
+				  <input type="text" id="cardNumberText" placeholder="例: sv8a 212/187">
+				  <button type="button" id="autoFillBtn">自動入力</button>
+				</p>
+
 				<p>
 					<label for="cardName">カード名:</label>
 					<input type="text" id="cardName" name="cardInfo.cardName"
@@ -215,6 +218,35 @@
 			document.getElementById('categoryId')?.addEventListener('change', toggleCardFields);
 		});
 	</script>
+	<script>
+	document.getElementById('autoFillBtn')?.addEventListener('click', async () => {
+	  const text = document.getElementById('cardNumberText').value;
+
+	  if (!text) {
+	    alert('カード番号を入力してください');
+	    return;
+	  }
+
+	  const res = await fetch('/items/auto-fill?text=' + encodeURIComponent(text));
+	  if (!res.ok) {
+	    alert('自動入力に失敗しました');
+	    return;
+	  }
+
+	  const data = await res.json();
+	  if (!data) {
+	    alert('該当カードが見つかりませんでした');
+	    return;
+	  }
+
+	  // 既存フォームへ反映
+	  document.getElementById('cardName').value = data.cardName ?? '';
+	  document.getElementById('packName').value = data.packName ?? '';
+	  document.getElementById('rarity').value = data.rarity ?? '';
+	  document.getElementById('regulation').value = data.regulation ?? '';
+	});
+	</script>
+
 
 
 </body>
