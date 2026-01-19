@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(
+        title='登録完了 - フリマアプリ',
+        content=~{::content},
+        showHeader=false,
+        showFooter=false
+      )}">
+
+<div th:fragment="content">
+  <div class="auth-page">
+    <div class="auth-card">
+
+      <h1>Evolon</h1>
+      <h2>アカウント作成完了</h2>
+
+      <p class="success-message">
+        登録が完了しました。
+      </p>
+
+      <p class="auth-text">
+        ログイン画面から、登録したメールアドレスとパスワードでログインしてください。
+      </p>
+
+      <div class="button-group">
+        <a th:href="@{/login}" class="button button-link">
+          ログイン画面へ
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+</html>

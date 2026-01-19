@@ -26,8 +26,18 @@ CREATE TABLE users (
     banned_at TIMESTAMP,
     banned_by_admin_id INT,
     reset_token VARCHAR(255),
-    reset_token_expires_at TIMESTAMP
+    reset_token_expires_at TIMESTAMP,
+
+    -- profile
+    nickname VARCHAR(50),
+    profile_image_url TEXT,
+    last_name VARCHAR(50),
+    first_name VARCHAR(50),
+    postal_code VARCHAR(8),
+    address TEXT,
+    bio VARCHAR(500)
 );
+
 
 -- ========== CATEGORY ==========
 CREATE TABLE category (

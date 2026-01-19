@@ -5,9 +5,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.evolon.entity.User;
+import com.example.evolon.form.ProfileEditForm;
 import com.example.evolon.service.AppOrderService;
 import com.example.evolon.service.FavoriteService;
 import com.example.evolon.service.ItemService;
@@ -55,6 +59,63 @@ public class UserController {
 				itemService.getItemsBySeller(user));
 
 		return "my_page";
+	}
+
+	/* =====================
+	 * プロフィール編集（表示）
+	 * ===================== */
+	@GetMapping("/profile/edit")
+	public String editProfile(
+			@AuthenticationPrincipal UserDetails userDetails,
+			@RequestParam(value = "returnTo", required = false) String returnTo,
+			Model model) {
+
+		User user = getLoginUser(userDetails);
+
+		ProfileEditForm form = new ProfileEditForm();
+		form.setNickname(user.getNickname());
+		form.setProfileImageUrl(user.getProfileImageUrl());
+		form.setLastName(user.getLastName());
+		form.setFirstName(user.getFirstName());
+		form.setPostalCode(user.getPostalCode());
+		form.setAddress(user.getAddress());
+		form.setBio(user.getBio());
+
+		model.addAttribute("profileEditForm", form);
+		model.addAttribute("returnTo", returnTo);
+
+		return "profile_edit";
+	}
+
+	/* =====================
+	 * プロフィール編集（保存）
+	 * ===================== */
+	@PostMapping("/profile/edit")
+	public String updateProfile(
+			@AuthenticationPrincipal UserDetails userDetails,
+			ProfileEditForm profileEditForm,
+			@RequestParam(value = "returnTo", required = false) String returnTo,
+			RedirectAttributes ra) {
+
+		User user = getLoginUser(userDetails);
+
+		// nickname未入力だと表示名が空になる事故防止（最低限の保険）
+		if (isBlank(profileEditForm.getNickname())) {
+			profileEditForm.setNickname(user.getName());
+		}
+
+		userService.updateProfile(user, profileEditForm);
+
+		ra.addFlashAttribute("successMessage", "プロフィールを更新しました");
+
+		if (!isBlank(returnTo)) {
+			return "redirect:" + returnTo;
+		}
+		return "redirect:/my-page";
+	}
+
+	private boolean isBlank(String s) {
+		return s == null || s.trim().isEmpty();
 	}
 
 	/* =====================

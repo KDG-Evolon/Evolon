@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org"
+      th:fragment="layout(title, content, showHeader, showFooter)">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${title}">Evolon</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+
+  <!-- showHeader が true のときだけ差し込む -->
+  <th:block th:if="${showHeader}">
+    <div th:replace="~{fragments/header :: header}"></div>
+  </th:block>
+
+  <main class="container">
+    <div th:replace="${content}"></div>
+  </main>
+
+  <!-- showFooter が true のときだけ差し込む -->
+  <th:block th:if="${showFooter}">
+    <div th:replace="~{fragments/footer :: footer}"></div>
+  </th:block>
+
+</body>
+</html>

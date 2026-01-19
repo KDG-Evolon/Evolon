@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>プロフィール編集</title>
+</head>
+<body>
+
+<h1>プロフィール編集</h1>
+
+<form th:action="@{/my-page/profile/edit}" th:object="${profileEditForm}" method="post">
+  <input type="hidden" name="returnTo" th:value="${returnTo}"/>
+
+  <div>
+    <label>ニックネーム</label>
+    <input type="text" th:field="*{nickname}">
+  </div>
+
+  <div>
+    <label>プロフィール画像URL（仮）</label>
+    <input type="text" th:field="*{profileImageUrl}">
+  </div>
+
+  <hr>
+
+  <div>
+    <label>姓</label>
+    <input type="text" th:field="*{lastName}">
+  </div>
+
+  <div>
+    <label>名</label>
+    <input type="text" th:field="*{firstName}">
+  </div>
+
+  <div>
+    <label>郵便番号</label>
+    <input type="text" th:field="*{postalCode}" placeholder="123-4567">
+  </div>
+
+  <div>
+    <label>住所</label>
+    <input type="text" th:field="*{address}">
+  </div>
+
+  <div>
+    <label>自己紹介</label>
+    <textarea th:field="*{bio}" rows="5"></textarea>
+  </div>
+
+  <button type="submit">保存</button>
+</form>
+
+<p><a th:href="@{/my-page}">マイページに戻る</a></p>
+
+</body>
+</html>
