@@ -1,24 +1,23 @@
 package com.example.evolon.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
 public class ParsedCardNumber {
 
-	private final String setCode;
-	private final String cardNumber;
+	private String setCode;
+	private String cardNumber;
 
-	public ParsedCardNumber(String setCode, String cardNumber) {
-		this.setCode = setCode;
-		this.cardNumber = cardNumber;
-	}
-
-	public String getSetCode() {
-		return setCode;
-	}
-
-	public String getCardNumber() {
-		return cardNumber;
+	public static ParsedCardNumber invalid() {
+		return new ParsedCardNumber(null, null);
 	}
 
 	public boolean isValid() {
-		return setCode != null && cardNumber != null;
+		return setCode != null
+				&& cardNumber != null
+				&& !setCode.isBlank()
+				&& !cardNumber.isBlank();
 	}
 }
