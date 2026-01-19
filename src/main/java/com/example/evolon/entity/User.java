@@ -24,6 +24,7 @@ public class User {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	// 本名（発送用）
 	@Column(nullable = false)
 	private String name;
 
@@ -60,7 +61,8 @@ public class User {
 	@Column(name = "reset_token_expires_at")
 	private LocalDateTime resetTokenExpiresAt;
 
-	@Column(nullable = false)
+	// 表示名
+	@Column(length = 50)
 	private String nickname;
 
 	@Column(name = "profile_image_url")

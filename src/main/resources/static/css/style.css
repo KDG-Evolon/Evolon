@@ -1,1 +1,209 @@
 @charset "UTF-8";
+
+
+/* =====================
+   Default
+===================== */
+.container {
+  max-width: 1000px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+.auth {
+  display: flex;
+  justify-content: center;
+  padding: 24px 0;
+}
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f6f7f9;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+
+.auth-title {
+  margin: 0 0 16px;
+  font-size: 22px;
+}
+
+.form-label {
+  display: block;
+  margin: 12px 0;
+  font-size: 14px;
+}
+
+.input {
+  width: 100%;
+  height: 44px;
+  border: 1px solid #dcdcdc;
+  border-radius: 10px;
+  padding: 0 12px;
+  margin-top: 6px;
+}
+
+.btn-block {
+  width: 100%;
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  margin-top: 12px;
+  cursor: pointer;
+}
+
+.msg {
+  margin: 8px 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.msg.error { background: #fff0f0; border: 1px solid #ffd0d0; }
+.msg.success { background: #f0fff4; border: 1px solid #ccefd6; }
+
+.auth-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 14px;
+  font-size: 13px;
+}
+
+
+/* =====================
+   Login Page
+===================== */
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f6f7f9;
+}
+
+.login-page .auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.login-page h1 {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.login-page h2 {
+  text-align: center;
+  font-size: 20px;
+  margin-bottom: 24px;
+}
+
+/* フォーム */
+.login-page form p {
+  margin-bottom: 16px;
+}
+
+.login-page label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.login-page input[type="text"],
+.login-page input[type="password"],
+.login-page input[type="email"] {
+  width: 100%;
+  box-sizing: border-box;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+
+.login-page input:focus {
+  outline: none;
+  border-color: #4f46e5;
+}
+
+/* ボタン */
+.login-page .button-group {
+  margin-top: 24px;
+}
+
+.login-page .button {
+  width: 100%;
+  height: 44px;
+  background: #4f46e5;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.login-page .button:hover {
+  opacity: 0.9;
+}
+
+/* メッセージ */
+.error-message {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.success-message {
+  background: #dcfce7;
+  color: #166534;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+/* 下リンク */
+.login-page .text-center {
+  text-align: center;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+.login-page .text-center a {
+  color: #4f46e5;
+  text-decoration: none;
+}
+
+/* Auth pages - text */
+.auth-text {
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* Button as link */
+.button-link {
+  display: block;
+  text-align: center;
+  line-height: 44px;
+  text-decoration: none;
+}
+

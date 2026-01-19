@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/layout :: layout(
+        title='新規アカウント作成 - フリマアプリ',
+        content=~{::content},
+        showHeader=false,
+        showFooter=false
+      )}">
+
+<div th:fragment="content">
+  <div class="login-page">
+    <div class="auth-card">
+
+      <h1>Evolon</h1>
+      <h2>新規アカウント作成</h2>
+
+      <form th:action="@{/register}" method="post">
+
+        <!-- エラーメッセージ -->
+        <div th:if="${error}" class="error-message" th:text="${error}"></div>
+
+        <!-- 名前 -->
+        <p>
+          <label for="name">ユーザー名</label>
+          <input type="text" id="name" name="name" required>
+        </p>
+
+        <!-- メールアドレス -->
+        <p>
+          <label for="email">メールアドレス</label>
+          <input type="email" id="email" name="email" required>
+        </p>
+
+        <!-- パスワード -->
+        <p>
+          <label for="password">パスワード</label>
+          <input type="password" id="password" name="password" required>
+        </p>
+
+        <!-- 確認用パスワード -->
+        <p>
+          <label for="confirmPassword">パスワード（確認）</label>
+          <input type="password" id="confirmPassword" name="confirmPassword" required>
+        </p>
+
+        <div class="button-group">
+          <button type="submit" class="button">登録する</button>
+        </div>
+      </form>
+
+      <hr>
+
+      <p class="text-center">
+        すでにアカウントをお持ちですか？
+        <a th:href="@{/login}">ログインはこちら</a>
+      </p>
+
+    </div>
+  </div>
+</div>
+</html>

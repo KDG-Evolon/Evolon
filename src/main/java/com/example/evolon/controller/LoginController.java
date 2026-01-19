@@ -12,6 +12,6 @@ public class LoginController {
 	@GetMapping("/login")
 	public String login() {
 		//login.html（Thymeleaf）を返す
-		return "login";
+		return "pages/auth/login";
 	}
 }
