@@ -120,4 +120,26 @@ public class UserService {
 		userRepository.save(user);
 	}
 
+	@Transactional
+	public void deactivateAccountByEmail(String email) {
+
+		User user = userRepository.findByEmailIgnoreCase(email)
+				.orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+		user.setEnabled(false);
+
+		// 再登録を許可するなら unique 回避（おすすめ）
+		user.setEmail("deleted_" + user.getId() + "_" + user.getEmail());
+
+		// トークン無効化
+		user.setLineNotifyToken(null);
+		user.setResetToken(null);
+		user.setResetTokenExpiresAt(null);
+
+		// パスワード無効化（任意だが推奨）
+		user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+
+		userRepository.save(user);
+	}
+
 }

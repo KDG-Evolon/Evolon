@@ -26,6 +26,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 		User u = users.findByEmailIgnoreCase(username)
 				.orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
+		if (u.isBanned()) {
+			throw new DisabledException("Account banned");
+		}
 		if (!u.isEnabled()) {
 			throw new DisabledException("Account disabled");
 		}
