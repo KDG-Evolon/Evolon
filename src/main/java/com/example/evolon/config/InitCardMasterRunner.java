@@ -13,28 +13,54 @@ import com.example.evolon.repository.CardMasterRepository;
 public class InitCardMasterRunner {
 
 	@Bean
-	CommandLineRunner initCardMasters(CardMasterRepository cardMasters) {
+	CommandLineRunner initCardMasters(CardMasterRepository repo) {
 		return args -> {
 
-			String setCode = "sv8a";
-			String cardNumber = "212/187";
+			insertIfNotExists(
+					repo,
+					"sv8a",
+					"212/187",
+					"ニンフィアex",
+					Rarity.SAR,
+					"テラスタルフェスex",
+					PrintedRegulation.H);
 
-			if (cardMasters.existsBySetCodeAndCardNumber(setCode, cardNumber)) {
-				System.out.println("ℹ️ card_master already exists, skip insert");
-				return;
-			}
-			cardMasters.save(
-					new CardMaster(
-							null,
-							setCode,
-							cardNumber,
-							"ニンフィアex",
-							Rarity.SAR,
-							"テラスタルフェスex",
-							PrintedRegulation.H));
+			insertIfNotExists(
+					repo,
+					"sv8a",
+					"206/187",
+					"グレイシアex",
+					Rarity.SAR,
+					"テラスタルフェスex",
+					PrintedRegulation.H);
 
-			System.out.println("✅ 初期カードマスタを登録しました");
+			System.out.println("✅ card_master 初期データ確認完了");
 		};
 	}
 
+	private void insertIfNotExists(
+			CardMasterRepository repo,
+			String setCode,
+			String cardNumber,
+			String cardName,
+			Rarity rarity,
+			String packName,
+			PrintedRegulation regulation) {
+
+		if (repo.existsBySetCodeAndCardNumber(setCode, cardNumber)) {
+			System.out.println("ℹ️ skip: " + setCode + " " + cardNumber);
+			return;
+		}
+
+		repo.save(new CardMaster(
+				null,
+				setCode,
+				cardNumber,
+				cardName,
+				rarity,
+				packName,
+				regulation));
+
+		System.out.println("➕ insert: " + setCode + " " + cardNumber);
+	}
 }
