@@ -28,6 +28,7 @@ public class SecurityConfig {
 								"/images/**",
 								"/items/**")
 						.permitAll()
+						.requestMatchers("/api/ocr").permitAll() // ★ここ重要
 						.requestMatchers("/orders/stripe-webhook").permitAll()
 						.requestMatchers("/admin/**").hasRole("ADMIN")
 						.anyRequest().authenticated())
@@ -40,7 +41,9 @@ public class SecurityConfig {
 						.logoutSuccessUrl("/login?logout")
 						.permitAll())
 				.csrf(csrf -> csrf
-						.ignoringRequestMatchers("/orders/stripe-webhook"));
+						.ignoringRequestMatchers("/orders/stripe-webhook")
+						.ignoringRequestMatchers("/api/ocr") // ★ここ重要
+				);
 
 		return http.build();
 	}

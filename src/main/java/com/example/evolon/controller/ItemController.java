@@ -301,6 +301,12 @@ public class ItemController {
 			@AuthenticationPrincipal UserDetails userDetails,
 			@ModelAttribute Item item,
 			@RequestParam("categoryId") Long categoryId,
+
+			@RequestParam("shippingDuration") ShippingDuration shippingDuration,
+			@RequestParam("shippingFeeBurden") ShippingFeeBurden shippingFeeBurden,
+			@RequestParam("shippingRegion") ShippingRegion shippingRegion,
+			@RequestParam("shippingMethod") ShippingMethod shippingMethod,
+
 			@RequestParam(value = "images", required = false) MultipartFile[] imageFiles,
 			RedirectAttributes redirectAttributes) {
 
@@ -312,6 +318,10 @@ public class ItemController {
 		User seller = userService.getUserByEmail(userDetails.getUsername())
 				.orElseThrow(() -> new RuntimeException("Seller not found"));
 		item.setSeller(seller);
+		item.setShippingDuration(shippingDuration);
+		item.setShippingFeeBurden(shippingFeeBurden);
+		item.setShippingRegion(shippingRegion);
+		item.setShippingMethod(shippingMethod);
 
 		Category category = categoryService.getCategoryById(categoryId)
 				.orElseThrow(() -> new IllegalArgumentException("Category not found"));

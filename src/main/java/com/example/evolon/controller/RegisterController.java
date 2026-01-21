@@ -24,7 +24,7 @@ public class RegisterController {
 	 */
 	@GetMapping("/register")
 	public String showRegisterForm() {
-		return "register";
+		return "pages/auth/register";
 	}
 
 	/**
@@ -41,13 +41,13 @@ public class RegisterController {
 		// ① パスワード一致チェック
 		if (!password.equals(confirmPassword)) {
 			model.addAttribute("error", "パスワードが一致しません。");
-			return "register";
+			return "pages/auth/register";
 		}
 
 		// ② メールアドレス重複チェック
 		if (userRepository.findByEmailIgnoreCase(email).isPresent()) {
 			model.addAttribute("error", "このメールアドレスは既に登録されています。");
-			return "register";
+			return "pages/auth/register";
 		}
 
 		// ③ ユーザー作成
@@ -69,6 +69,6 @@ public class RegisterController {
 	 */
 	@GetMapping("/register/complete")
 	public String registerComplete() {
-		return "register_complete";
+		return "pages/auth/register_complete";
 	}
 }

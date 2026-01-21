@@ -61,6 +61,16 @@ public class AppOrderController {
 		User buyer = userService.getUserByEmail(userDetails.getUsername())
 				.orElseThrow(() -> new RuntimeException("User not found"));
 
+		// 配送先情報が未登録ならプロフィール編集へ誘導
+		if (isBlank(buyer.getLastName())
+				|| isBlank(buyer.getFirstName())
+				|| isBlank(buyer.getPostalCode())
+				|| isBlank(buyer.getAddress())) {
+
+			ra.addFlashAttribute("errorMessage", "購入には配送先情報（氏名・郵便番号・住所）の登録が必要です");
+			return "redirect:/my-page/profile/edit?returnTo=/items/" + itemId;
+		}
+
 		try {
 			PaymentIntent pi = appOrderService.initiatePurchase(itemId, buyer);
 			return "redirect:/orders/confirm"
@@ -70,6 +80,10 @@ public class AppOrderController {
 			ra.addFlashAttribute("errorMessage", e.getMessage());
 			return "redirect:/items/" + itemId;
 		}
+	}
+
+	private boolean isBlank(String s) {
+		return s == null || s.trim().isEmpty();
 	}
 
 	/* =====================
