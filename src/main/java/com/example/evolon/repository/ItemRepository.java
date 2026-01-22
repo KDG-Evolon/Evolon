@@ -22,29 +22,27 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 	 * 公開中（出品中）検索
 	 * ========================= */
 
-	// ステータスのみ（公開中一覧など）
-	Page<Item> findByStatus(
-			ItemStatus status,
-			Pageable pageable);
+	// ステータス複数（一覧用）
+	Page<Item> findByStatusIn(List<ItemStatus> statuses, Pageable pageable);
 
-	// 名前の部分一致 + ステータス
-	Page<Item> findByNameContainingIgnoreCaseAndStatus(
-			String name,
-			ItemStatus status,
-			Pageable pageable);
+	// 名前 + ステータス複数
+	Page<Item> findByNameContainingIgnoreCaseAndStatusIn(
+	        String name,
+	        List<ItemStatus> statuses,
+	        Pageable pageable);
 
-	// カテゴリ + ステータス
-	Page<Item> findByCategory_IdAndStatus(
-			Long categoryId,
-			ItemStatus status,
-			Pageable pageable);
+	// カテゴリ + ステータス複数
+	Page<Item> findByCategory_IdAndStatusIn(
+	        Long categoryId,
+	        List<ItemStatus> statuses,
+	        Pageable pageable);
 
-	// 名前 + カテゴリ + ステータス
-	Page<Item> findByNameContainingIgnoreCaseAndCategory_IdAndStatus(
-			String name,
-			Long categoryId,
-			ItemStatus status,
-			Pageable pageable);
+	// 名前 + カテゴリ + ステータス複数
+	Page<Item> findByNameContainingIgnoreCaseAndCategory_IdAndStatusIn(
+	        String name,
+	        Long categoryId,
+	        List<ItemStatus> statuses,
+	        Pageable pageable);
 
 	/* =========================
 	 * ★ カード条件検索（null は条件に入れない）
@@ -55,28 +53,30 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 	 *   実質 cardInfo がある商品がヒットする
 	 * ========================= */
 	@Query("""
-				SELECT i
-				FROM Item i
-				LEFT JOIN i.cardInfo ci
-				WHERE i.status = :status
-				  AND (:cardName IS NULL OR ci.cardName LIKE %:cardName%)
-				  AND (:rarity IS NULL OR ci.rarity = :rarity)
-				  AND (:regulation IS NULL OR ci.regulation = :regulation)
-				  AND (:condition IS NULL OR ci.condition = :condition)
-				  AND (:packName IS NULL OR ci.packName LIKE %:packName%)
-				  AND (:minPrice IS NULL OR i.price >= :minPrice)
-				  AND (:maxPrice IS NULL OR i.price <= :maxPrice)
-			""")
-	Page<Item> searchByCardFilters(
-			@Param("status") ItemStatus status,
-			@Param("cardName") String cardName,
-			@Param("rarity") Rarity rarity,
-			@Param("regulation") Regulation regulation,
-			@Param("condition") CardCondition condition,
-			@Param("packName") String packName,
-			@Param("minPrice") BigDecimal minPrice,
-			@Param("maxPrice") BigDecimal maxPrice,
-			Pageable pageable);
+		    SELECT i
+		    FROM Item i
+		    LEFT JOIN i.cardInfo ci
+		    WHERE i.status IN :statuses
+		      AND (:cardName IS NULL OR ci.cardName LIKE %:cardName%)
+		      AND (:rarity IS NULL OR ci.rarity = :rarity)
+		      AND (:regulation IS NULL OR ci.regulation = :regulation)
+		      AND (:condition IS NULL OR ci.condition = :condition)
+		      AND (:packName IS NULL OR ci.packName LIKE %:packName%)
+		      AND (:minPrice IS NULL OR i.price >= :minPrice)
+		      AND (:maxPrice IS NULL OR i.price <= :maxPrice)
+		""")
+		Page<Item> searchByCardFilters(
+		    @Param("statuses") List<ItemStatus> statuses,
+		    @Param("cardName") String cardName,
+		    @Param("rarity") Rarity rarity,
+		    @Param("regulation") Regulation regulation,
+		    @Param("condition") CardCondition condition,
+		    @Param("packName") String packName,
+		    @Param("minPrice") BigDecimal minPrice,
+		    @Param("maxPrice") BigDecimal maxPrice,
+		    Pageable pageable);
+
+
 
 	/* =========================
 	 * 出品者

@@ -99,7 +99,7 @@ public class AppOrderService {
 		}
 
 		order.completePurchase();
-		itemService.markAsPaymentDone(order.getItem().getId());
+		itemService.markAsSold(order.getItem().getId());
 		notifySellerPurchased(order);
 
 		return order;
@@ -191,6 +191,9 @@ public class AppOrderService {
 		if (buyerReviewed && sellerReviewed) {
 			order.setOrderStatus(OrderStatus.COMPLETED);
 			order.setStatus(OrderStatus.COMPLETED.getLabel());
+			 
+			itemService.markAsSold(order.getItem().getId()); 
+
 		}
 	}
 

@@ -167,7 +167,10 @@
           </p>
 
           <!-- ステータス（仮） -->
-          <span class="status selling">出品中</span>
+		  <span class="status"
+		        th:classappend="${item.status != null ? item.status.name().toLowerCase() : 'selling'}"
+		        th:text="${item.status != null ? item.status.label : '出品中'}">
+		  </span>
         </a>
       </div>
 

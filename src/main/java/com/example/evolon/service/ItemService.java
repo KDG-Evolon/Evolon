@@ -34,36 +34,42 @@ public class ItemService {
 	}
 
 	/* =========================
-	 * 商品検索（出品中のみ）
-	 * ※ 旧：キーワード + カテゴリのみ
+	 * 商品一覧検索
+	 * SELLING + SOLD を表示する
 	 * ========================= */
 	public Page<Item> searchItems(String keyword, Long categoryId, int page, int size) {
 
 		Pageable pageable = PageRequest.of(page, size);
 
+		// ★ 表示対象ステータス（ここが重要）
+		List<ItemStatus> statuses = List.of(
+				ItemStatus.SELLING,
+				ItemStatus.SOLD
+		);
+
 		if (hasText(keyword) && categoryId != null) {
 			return itemRepository
-					.findByNameContainingIgnoreCaseAndCategory_IdAndStatus(
-							keyword, categoryId, ItemStatus.SELLING, pageable);
+					.findByNameContainingIgnoreCaseAndCategory_IdAndStatusIn(
+							keyword, categoryId, statuses, pageable);
 
 		} else if (hasText(keyword)) {
 			return itemRepository
-					.findByNameContainingIgnoreCaseAndStatus(
-							keyword, ItemStatus.SELLING, pageable);
+					.findByNameContainingIgnoreCaseAndStatusIn(
+							keyword, statuses, pageable);
 
 		} else if (categoryId != null) {
 			return itemRepository
-					.findByCategory_IdAndStatus(
-							categoryId, ItemStatus.SELLING, pageable);
+					.findByCategory_IdAndStatusIn(
+							categoryId, statuses, pageable);
 
 		} else {
-			return itemRepository.findByStatus(ItemStatus.SELLING, pageable);
+			return itemRepository.findByStatusIn(statuses, pageable);
 		}
 	}
 
 	/* =========================
-	 * ★ カード条件検索（出品中のみ）
-	 * （/items/search のフォーム条件をここで反映する）
+	 * カード条件検索
+	 * （今は SELLING のみ）
 	 * ========================= */
 	public Page<Item> searchByCardFilters(
 			String cardName,
@@ -76,12 +82,11 @@ public class ItemService {
 			String sort,
 			int page,
 			int size) {
-		// 並び替えを反映した Pageable を作る
+
 		Pageable pageable = PageRequest.of(page, size, ItemSortHelper.toSort(sort));
 
-		// Repository の @Query に投げる
 		return itemRepository.searchByCardFilters(
-				ItemStatus.SELLING,
+				ItemStatus.SELLING,   // ← 将来 SOLD も入れたくなったら List にする
 				hasText(cardName) ? cardName : null,
 				rarity,
 				regulation,
@@ -95,7 +100,6 @@ public class ItemService {
 	/* =========================
 	 * 取得系
 	 * ========================= */
-
 	public List<Item> getAllItems() {
 		return itemRepository.findAll();
 	}
@@ -104,7 +108,6 @@ public class ItemService {
 		return itemRepository.findById(id);
 	}
 
-	/** AdminController 互換：findById を呼んでるならこれを用意 */
 	public Optional<Item> findById(Long id) {
 		return itemRepository.findById(id);
 	}
@@ -120,7 +123,6 @@ public class ItemService {
 	/* =========================
 	 * 保存・削除
 	 * ========================= */
-
 	@Transactional
 	public Item saveItem(Item item, MultipartFile[] imageFiles) throws IOException {
 
@@ -128,25 +130,23 @@ public class ItemService {
 			return itemRepository.save(item);
 		}
 
-		// 最大8枚
 		int max = Math.min(imageFiles.length, 8);
 
 		for (int i = 0; i < max; i++) {
 			MultipartFile f = imageFiles[i];
-			if (f == null || f.isEmpty())
-				continue;
+			if (f == null || f.isEmpty()) continue;
 
 			String url = cloudinaryService.uploadFile(f);
 
 			switch (i) {
-			case 0 -> item.setImageUrl(url);
-			case 1 -> item.setImageUrl2(url);
-			case 2 -> item.setImageUrl3(url);
-			case 3 -> item.setImageUrl4(url);
-			case 4 -> item.setImageUrl5(url);
-			case 5 -> item.setImageUrl6(url);
-			case 6 -> item.setImageUrl7(url);
-			case 7 -> item.setImageUrl8(url);
+				case 0 -> item.setImageUrl(url);
+				case 1 -> item.setImageUrl2(url);
+				case 2 -> item.setImageUrl3(url);
+				case 3 -> item.setImageUrl4(url);
+				case 4 -> item.setImageUrl5(url);
+				case 5 -> item.setImageUrl6(url);
+				case 6 -> item.setImageUrl7(url);
+				case 7 -> item.setImageUrl8(url);
 			}
 		}
 
@@ -159,7 +159,6 @@ public class ItemService {
 		Item item = itemRepository.findById(itemId)
 				.orElseThrow(() -> new IllegalArgumentException("商品が見つかりません"));
 
-		// 画像がある場合は Cloudinary からも削除
 		if (item.getImageUrl() != null) {
 			cloudinaryService.deleteFile(item.getImageUrl());
 		}
@@ -168,10 +167,10 @@ public class ItemService {
 	}
 
 	/* =========================
-	 * 状態変更
+	 * ステータス変更
 	 * ========================= */
 
-	/** ★決済完了 → 発送待ち */
+	/** 決済完了 → 発送待ち */
 	@Transactional
 	public void markAsPaymentDone(Long itemId) {
 
@@ -182,7 +181,7 @@ public class ItemService {
 		itemRepository.save(item);
 	}
 
-	/** 売却確定（取引完全終了などで使う用：必要なら） */
+	/** 取引完了 → SOLD */
 	@Transactional
 	public void markAsSold(Long itemId) {
 
@@ -194,10 +193,8 @@ public class ItemService {
 	}
 
 	/* =========================
-	 * 管理者用（AdminController 互換）
+	 * 管理者用
 	 * ========================= */
-
-	/** 公開（= 出品中に戻す） */
 	@Transactional
 	public void publishItem(Long itemId) {
 
@@ -208,7 +205,6 @@ public class ItemService {
 		itemRepository.save(item);
 	}
 
-	/** 非公開（= 停止） */
 	@Transactional
 	public void unpublishItem(Long itemId) {
 
@@ -220,9 +216,8 @@ public class ItemService {
 	}
 
 	/* =========================
-	 * private helper
+	 * helper
 	 * ========================= */
-
 	private boolean hasText(String value) {
 		return value != null && !value.isBlank();
 	}
