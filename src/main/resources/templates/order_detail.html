@@ -14,6 +14,10 @@
 
     <h1>取引詳細</h1>
 
+    <!-- ================= メッセージ（フラッシュ表示） ================= -->
+    <div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}"></div>
+    <div th:if="${successMessage}" class="success-message" th:text="${successMessage}"></div>
+
     <!-- ================= 商品情報 ================= -->
     <section class="card">
         <!-- ★ item は model に無いので order 経由 -->
@@ -33,6 +37,8 @@
     <!-- ================= 出品者：発送 ================= -->
     <section th:if="${canShip}">
         <form th:action="@{/orders/{id}/ship(id=${order.id})}" method="post">
+            <!-- CSRF -->
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <button class="button">発送済みにする</button>
         </form>
     </section>
@@ -40,26 +46,36 @@
     <!-- ================= 購入者：到着確認 ================= -->
     <section th:if="${canDeliver}">
         <form th:action="@{/orders/{id}/deliver(id=${order.id})}" method="post">
+            <!-- CSRF -->
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <button class="button">到着確認</button>
         </form>
     </section>
 
-    <!-- ================= チャット ================= -->
+    <!-- ================= 取引メッセージ ================= -->
     <section class="card">
         <h2>取引メッセージ</h2>
 
         <div class="chat-box">
-            <div th:each="chat : ${chats}" class="chat-message">
-                <strong th:text="${chat.sender.name}"></strong>：
-                <span th:text="${chat.message}"></span>
-                <small th:text="${#temporals.format(chat.createdAt,'MM/dd HH:mm')}"></small>
+
+            <!-- ★ chats ではなく orderMessages を表示する -->
+            <div th:each="m : ${orderMessages}" class="chat-message">
+                <strong th:text="${m.sender.name}">送信者</strong>：
+                <span th:text="${m.message}">本文</span>
+
+                <!-- ★ 表示形式はお好みで。まずは年月日まで出すとズレ確認が楽 -->
+                <small th:text="${#temporals.format(m.createdAt,'yyyy/MM/dd HH:mm')}">時刻</small>
             </div>
 
-            <p th:if="${#lists.isEmpty(chats)}">まだメッセージはありません</p>
+            <p th:if="${#lists.isEmpty(orderMessages)}">まだメッセージはありません</p>
         </div>
 
         <form th:action="@{/orders/{id}/chat(id=${order.id})}" method="post">
             <textarea name="message" required></textarea>
+
+            <!-- CSRF -->
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
             <button class="button">送信</button>
         </form>
     </section>
@@ -68,8 +84,10 @@
     <section th:if="${canBuyerReview}" class="card">
         <h2>出品者を評価する</h2>
 
-        <!-- ★ controller は /review 1本化 -->
         <form th:action="@{/orders/{id}/review(id=${order.id})}" method="post">
+            <!-- CSRF -->
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
             <select name="result" required>
                 <option value="GOOD">良い</option>
                 <option value="BAD">悪い</option>
@@ -84,8 +102,10 @@
     <section th:if="${canSellerReview}" class="card">
         <h2>購入者を評価する</h2>
 
-        <!-- ★ /BAD のみ） -->
         <form th:action="@{/orders/{id}/review(id=${order.id})}" method="post">
+            <!-- CSRF -->
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
             <select name="result" required>
                 <option value="GOOD">良い</option>
                 <option value="BAD">悪い</option>

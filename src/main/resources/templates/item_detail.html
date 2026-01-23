@@ -210,20 +210,28 @@
 		<h2>チャット</h2>
 
 		<div class="chat-box">
+		  <div th:each="chat : ${chats}"
+		       class="chat-message"
+		       th:classappend="${isOwner
+		         or (
+		           #authentication != null
+		           and chat.sender != null
+		           and chat.sender.email != null
+		           and chat.sender.email != #authentication.name
+		         )
+		         ? 'other-message' : 'my-message'}">
 
-			<div th:each="chat : ${chats}" class="chat-message" th:classappend="${isOwner 
-                or (chat.sender != null and chat.sender.email != null and chat.sender.email != #authentication.name)
-                ? 'other-message' : 'my-message'}">
+		    <span class="sender-name" th:text="${chat.sender != null ? chat.sender.name : '不明'}"></span>
+		    <span class="message-time" th:text="${#temporals.format(chat.createdAt,'yyyy/MM/dd HH:mm')}"></span>
+		    <p th:text="${chat.message}"></p>
+		  </div>
 
-				<span class="sender-name" th:text="${chat.sender.name}"></span>
-				<span class="message-time" th:text="${#temporals.format(chat.createdAt,'yyyy/MM/dd HH:mm')}"></span>
-				<p th:text="${chat.message}"></p>
-			</div>
-
-			<div th:if="${#lists.isEmpty(chats)}">
-				<p>まだチャットメッセージはありません。</p>
-			</div>
+		  <div th:if="${#lists.isEmpty(chats)}">
+		    <p>まだチャットメッセージはありません。</p>
+		  </div>
 		</div>
+
+
 
 		<!-- ========================= -->
 		<!-- チャット送信（購入済みの場合は非表示） -->

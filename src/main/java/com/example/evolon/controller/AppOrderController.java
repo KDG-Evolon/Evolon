@@ -21,6 +21,7 @@ import com.example.evolon.entity.ReviewResult;
 import com.example.evolon.entity.User;
 import com.example.evolon.service.AppOrderService;
 import com.example.evolon.service.ChatService;
+import com.example.evolon.service.OrderMessageService;
 import com.example.evolon.service.ReviewService;
 import com.example.evolon.service.UserService;
 import com.stripe.exception.StripeException;
@@ -32,8 +33,15 @@ public class AppOrderController {
 
 	private final AppOrderService appOrderService;
 	private final UserService userService;
+
+	// 商品詳細の「商品チャット」を使っているなら残す（不要なら後で消してOK）
 	private final ChatService chatService;
+
+	// 評価関連
 	private final ReviewService reviewService;
+
+	// ★ 取引メッセージ（今回の本命）
+	private final OrderMessageService orderMessageService;
 
 	@Value("${stripe.public-key}")
 	private String stripePublicKey;
@@ -42,11 +50,14 @@ public class AppOrderController {
 			AppOrderService appOrderService,
 			UserService userService,
 			ChatService chatService,
-			ReviewService reviewService) {
+			ReviewService reviewService,
+			OrderMessageService orderMessageService) {
+
 		this.appOrderService = appOrderService;
 		this.userService = userService;
 		this.chatService = chatService;
 		this.reviewService = reviewService;
+		this.orderMessageService = orderMessageService;
 	}
 
 	/* =====================
@@ -143,7 +154,17 @@ public class AppOrderController {
 			return "redirect:/my-page";
 		}
 
+		// -------------------------
+		// ★ 取引メッセージ一覧（今回の本命）
+		// -------------------------
+		model.addAttribute("orderMessages", orderMessageService.getMessages(order));
+
+		// -------------------------
+		// ※ 商品詳細のチャット（商品チャット）も表示したいなら残す
+		//    order_detail.html が chats を使ってないなら削除してOK
+		// -------------------------
 		List<Chat> chats = chatService.getChatMessagesByItem(order.getItem().getId());
+		model.addAttribute("chats", chats);
 
 		// ✅ 評価済み判定は ReviewService に統一
 		boolean buyerReviewed = reviewService.hasReviewed(id, order.getBuyer());
@@ -152,7 +173,6 @@ public class AppOrderController {
 		OrderStatus st = order.getOrderStatus();
 
 		model.addAttribute("order", order);
-		model.addAttribute("chats", chats);
 		model.addAttribute("isBuyer", isBuyer);
 		model.addAttribute("isSeller", isSeller);
 
@@ -172,7 +192,7 @@ public class AppOrderController {
 	}
 
 	/* =====================
-	 * チャット送信
+	 * 取引メッセージ送信
 	 * ===================== */
 	@PostMapping("/{id}/chat")
 	public String sendChat(
@@ -200,7 +220,9 @@ public class AppOrderController {
 			return "redirect:/my-page";
 		}
 
-		chatService.sendMessage(order.getItem().getId(), sender, message.trim());
+		// ★ ここが重要：商品チャット(ChatService)ではなく、取引メッセージ(OrderMessage)に保存する
+		orderMessageService.send(order, sender, message.trim());
+
 		return "redirect:/orders/" + id;
 	}
 
