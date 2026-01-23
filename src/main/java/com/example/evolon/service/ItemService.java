@@ -44,8 +44,7 @@ public class ItemService {
 		// ★ 表示対象ステータス（ここが重要）
 		List<ItemStatus> statuses = List.of(
 				ItemStatus.SELLING,
-				ItemStatus.SOLD
-		);
+				ItemStatus.SOLD);
 
 		if (hasText(keyword) && categoryId != null) {
 			return itemRepository
@@ -68,8 +67,10 @@ public class ItemService {
 	}
 
 	/* =========================
-	 * カード条件検索
-	 * （今は SELLING のみ）
+	 * ★ カード条件検索（絞り込み検索）
+	 *
+	 * - status が null の場合：SELLING + SOLD（＝全て）
+	 * - status が指定されている場合：指定されたものだけ
 	 * ========================= */
 	public Page<Item> searchByCardFilters(
 			String cardName,
@@ -80,13 +81,19 @@ public class ItemService {
 			BigDecimal minPrice,
 			BigDecimal maxPrice,
 			String sort,
+			ItemStatus status, // ★追加（Controller から渡ってくる）
 			int page,
 			int size) {
 
 		Pageable pageable = PageRequest.of(page, size, ItemSortHelper.toSort(sort));
 
+		// ★ status が未指定なら「全て（SELLING + SOLD）」にする
+		List<ItemStatus> statuses = (status == null)
+				? List.of(ItemStatus.SELLING, ItemStatus.SOLD)
+				: List.of(status);
+
 		return itemRepository.searchByCardFilters(
-				ItemStatus.SELLING,   // ← 将来 SOLD も入れたくなったら List にする
+				statuses, // ★Listで渡す（Repository 側は IN :statuses）
 				hasText(cardName) ? cardName : null,
 				rarity,
 				regulation,
@@ -134,19 +141,20 @@ public class ItemService {
 
 		for (int i = 0; i < max; i++) {
 			MultipartFile f = imageFiles[i];
-			if (f == null || f.isEmpty()) continue;
+			if (f == null || f.isEmpty())
+				continue;
 
 			String url = cloudinaryService.uploadFile(f);
 
 			switch (i) {
-				case 0 -> item.setImageUrl(url);
-				case 1 -> item.setImageUrl2(url);
-				case 2 -> item.setImageUrl3(url);
-				case 3 -> item.setImageUrl4(url);
-				case 4 -> item.setImageUrl5(url);
-				case 5 -> item.setImageUrl6(url);
-				case 6 -> item.setImageUrl7(url);
-				case 7 -> item.setImageUrl8(url);
+			case 0 -> item.setImageUrl(url);
+			case 1 -> item.setImageUrl2(url);
+			case 2 -> item.setImageUrl3(url);
+			case 3 -> item.setImageUrl4(url);
+			case 4 -> item.setImageUrl5(url);
+			case 5 -> item.setImageUrl6(url);
+			case 6 -> item.setImageUrl7(url);
+			case 7 -> item.setImageUrl8(url);
 			}
 		}
 

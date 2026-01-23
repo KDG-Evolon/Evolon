@@ -37,9 +37,17 @@
         🔍 絞り込み検索
       </button>
 
+      <!-- ========================= -->
+      <!-- 現在の検索条件を表示（カード名 + ステータス） -->
+      <!-- ========================= -->
       <div class="search-hint">
         <span th:if="${param.cardName != null and param.cardName[0] != ''}">
           カード名: <b th:text="${param.cardName[0]}"></b>
+        </span>
+
+        <span th:if="${param.status != null and param.status[0] != ''}">
+          ステータス:
+          <b th:text="${param.status[0] == 'SELLING' ? '出品中' : (param.status[0] == 'SOLD' ? '売り切れ' : param.status[0])}"></b>
         </span>
       </div>
     </div>
@@ -59,10 +67,10 @@
         <!-- ========================= -->
         <form th:action="@{/items/search}" method="get" class="filter-form modal-form">
 
-          <div>
-            <label>カード名</label>
-            <input type="text" name="cardName" th:value="${param.cardName}">
-          </div>
+			<div>
+			  <label>カード名</label>
+			  <input type="text" name="cardName" th:value="${param.cardName}">
+			</div>
 
           <div>
             <label>レアリティ</label>
@@ -105,6 +113,18 @@
             </select>
           </div>
 
+          <!-- ========================= -->
+          <!-- ★ 追加：ステータス絞り込み -->
+          <!-- ========================= -->
+          <div>
+            <label>ステータス</label>
+            <select name="status">
+              <option value="" th:selected="${param.status == null or param.status[0] == ''}">全て</option>
+              <option value="SELLING" th:selected="${param.status != null and param.status[0] == 'SELLING'}">出品中</option>
+              <option value="SOLD" th:selected="${param.status != null and param.status[0] == 'SOLD'}">売り切れ</option>
+            </select>
+          </div>
+
           <div>
             <label>価格</label>
             <div class="range">
@@ -136,15 +156,15 @@
     <!-- ========================= -->
     <div class="item-grid">
 
-      <!-- 商品1件 -->		<div class="item-card"
-		     th:each="item : ${items.content}"
-		     th:classappend="' category-' + ${
-		        item.category == null ? 'other' :
-		        (item.category.name == 'カード' ? 'card' :
-		        (item.category.name == 'サプライ' ? 'supply' :
-		        (item.category.name == 'デッキ・構築済み' ? 'deck' : 'other')))
-		     }">
-
+      <!-- 商品1件 -->
+      <div class="item-card"
+           th:each="item : ${items.content}"
+           th:classappend="' category-' + ${
+              item.category == null ? 'other' :
+              (item.category.name == 'カード' ? 'card' :
+              (item.category.name == 'サプライ' ? 'supply' :
+              (item.category.name == 'デッキ・構築済み' ? 'deck' : 'other')))
+           }">
 
         <a th:href="@{/items/{id}(id=${item.id})}">
 
@@ -166,11 +186,11 @@
              th:text="'¥' + ${#numbers.formatDecimal(item.price,0,'COMMA',0,'POINT')}">
           </p>
 
-          <!-- ステータス（仮） -->
-		  <span class="status"
-		        th:classappend="${item.status != null ? item.status.name().toLowerCase() : 'selling'}"
-		        th:text="${item.status != null ? item.status.label : '出品中'}">
-		  </span>
+          <!-- ステータス表示 -->
+          <span class="status"
+                th:classappend="${item.status != null ? item.status.name().toLowerCase() : 'selling'}"
+                th:text="${item.status != null ? item.status.label : '出品中'}">
+          </span>
         </a>
       </div>
 
@@ -187,6 +207,7 @@
 
       <a th:if="${items.hasPrevious()}" th:href="@{/items/search(
             page=${items.number - 1},
+            status=${param.status},
             cardName=${param.cardName},
             rarity=${param.rarity},
             regulation=${param.regulation},
@@ -202,6 +223,7 @@
       <span th:each="i : ${#numbers.sequence(0, items.totalPages - 1)}">
         <a th:if="${i != items.number}" th:href="@{/items/search(
               page=${i},
+              status=${param.status},
               cardName=${param.cardName},
               rarity=${param.rarity},
               regulation=${param.regulation},
@@ -218,6 +240,7 @@
 
       <a th:if="${items.hasNext()}" th:href="@{/items/search(
             page=${items.number + 1},
+            status=${param.status},
             cardName=${param.cardName},
             rarity=${param.rarity},
             regulation=${param.regulation},
