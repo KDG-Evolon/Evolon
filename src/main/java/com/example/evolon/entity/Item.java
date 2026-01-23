@@ -116,18 +116,28 @@ public class Item {
 	@Column(name = "image_url8")
 	private String imageUrl8;
 
-
-	
 	@Column(nullable = false)
 	private LocalDateTime createdAt = LocalDateTime.now();
 
 	// =========================
 	// ドメインロジック
 	// =========================
+	/**
+	 * 購入可能かどうか	 */
 	public boolean canBePurchased() {
 		return status.isPurchasable();
 	}
 
+	/**
+	 * 購入済み（売り切れ）かどうか
+	 */
+	public boolean isSold() {
+		return this.status == ItemStatus.SOLD;
+	}
+
+	/**
+	 * 売り切れにする
+	 */
 	public void markAsSold() {
 		this.status = ItemStatus.SOLD;
 	}

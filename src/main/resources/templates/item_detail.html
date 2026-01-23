@@ -21,6 +21,9 @@
 		<div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}"></div>
 		<div th:if="${successMessage}" class="success-message" th:text="${successMessage}"></div>
 
+		<!-- ★ チャット送信不可などのメッセージ（ChatControllerで model.addAttribute("chatError", ...)） -->
+		<div th:if="${chatError}" class="error-message" th:text="${chatError}"></div>
+
 		<!-- ========================= -->
 		<!-- 商品詳細 -->
 		<!-- ========================= -->
@@ -97,14 +100,12 @@
 
 					<p>
 						状態：
-						<span
-							th:text="${item.cardInfo.condition != null ? item.cardInfo.condition.label : '-'}">状態</span>
+						<span th:text="${item.cardInfo.condition != null ? item.cardInfo.condition.label : '-'}">状態</span>
 					</p>
 
 					<p>
 						レギュレーション：
-						<span
-							th:text="${item.cardInfo.regulation != null ? item.cardInfo.regulation.label : '-'}">レギュレーション</span>
+						<span th:text="${item.cardInfo.regulation != null ? item.cardInfo.regulation.label : '-'}">レギュレーション</span>
 					</p>
 				</div>
 
@@ -140,16 +141,23 @@
 			</form>
 
 			<!-- ========================= -->
-			<!-- チャット -->
+			<!-- チャットリンク（購入済みの場合は非表示） -->
 			<!-- ========================= -->
-			<a th:href="@{/chat/{itemId}(itemId=${item.id})}" class="button secondary">
+			<a th:if="${item.status.name() != 'SOLD'}"
+			   th:href="@{/chat/{itemId}(itemId=${item.id})}"
+			   class="button secondary">
 				チャットで質問 / 交渉
 			</a>
 
+			<!-- 購入済みのときの案内（任意） -->
+			<span th:if="${item.status.name() == 'SOLD'}" class="error-message">
+				購入済みのため、チャットでの質問はできません。
+			</span>
+
 			<!-- ========================= -->
-			<!-- お気に入り（自分以外） -->
+			<!-- お気に入り（自分以外 & 購入済みは不可なので非表示） -->
 			<!-- ========================= -->
-			<div sec:authorize="isAuthenticated()" th:if="${!isOwner}">
+			<div sec:authorize="isAuthenticated()" th:if="${!isOwner and item.status.name() != 'SOLD'}">
 
 				<form th:if="${isFavorited}" th:action="@{/items/{id}/unfavorite(id=${item.id})}" method="post"
 					style="display:inline;">
@@ -218,10 +226,13 @@
 		</div>
 
 		<!-- ========================= -->
-		<!-- チャット送信 -->
+		<!-- チャット送信（購入済みの場合は非表示） -->
 		<!-- ========================= -->
-		<form sec:authorize="isAuthenticated()" th:action="@{/chat/{itemId}(itemId=${item.id})}" method="post"
-			class="chat-form">
+		<form sec:authorize="isAuthenticated()"
+			  th:if="${item.status.name() != 'SOLD'}"
+			  th:action="@{/chat/{itemId}(itemId=${item.id})}"
+			  method="post"
+			  class="chat-form">
 
 			<textarea name="message" placeholder="メッセージを入力してください" required></textarea>
 
@@ -231,6 +242,11 @@
 				送信
 			</button>
 		</form>
+
+		<!-- 購入済みのときの案内（フォームの代わりに表示） -->
+		<div sec:authorize="isAuthenticated()" th:if="${item.status.name() == 'SOLD'}" class="error-message">
+			購入済みのため、メッセージは送信できません。
+		</div>
 
 		<!-- ========================= -->
 		<!-- 戻る -->
