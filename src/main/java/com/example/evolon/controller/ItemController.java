@@ -50,6 +50,7 @@ import com.example.evolon.dto.ParsedCardNumber;
 import com.example.evolon.entity.Category;
 // 商品エンティティの import
 import com.example.evolon.entity.Item;
+import com.example.evolon.entity.ItemStatus;
 // ユーザエンティティの import
 import com.example.evolon.entity.User;
 import com.example.evolon.service.CardMasterService;
@@ -130,7 +131,7 @@ public class ItemController {
 			// 画面へデータを渡すモデル
 			Model model) {
 
-		// 条件に応じて商品を検索（出品中のみ）
+		// 条件に応じて商品を検索（SELLING + SOLD を表示する想定）
 		Page<Item> items = itemService.searchItems(keyword, categoryId, page, size);
 
 		// カテゴリ一覧を取得
@@ -152,10 +153,10 @@ public class ItemController {
 
 	/* =========================================================
 	 * ★ カード条件検索 GET /items/search
-	 * （cardName/rarity/regulation/condition/packName/price/sort を反映）
+	 * （cardName/rarity/regulation/condition/status/packName/price/sort を反映）
 	 *
 	 * ★ポイント：
-	 *  - rarity/regulation/condition は String で受けて enum に変換
+	 *  - rarity/regulation/condition/status は String で受けて enum に変換
 	 *    → HTML の value が壊れていても例外になりにくい
 	 * ========================================================= */
 	@GetMapping("/search")
@@ -168,6 +169,8 @@ public class ItemController {
 			@RequestParam(required = false) String regulation,
 			// 状態（enum名を想定）
 			@RequestParam(required = false) String condition,
+			// ステータス（SELLING / SOLD / 空=全て）
+			@RequestParam(required = false) String status,
 			// 封入パック（部分一致想定）
 			@RequestParam(required = false) String packName,
 			// 最低価格
@@ -186,11 +189,15 @@ public class ItemController {
 		Rarity rarityEnum = parseEnumSafely(rarity, Rarity.class);
 		Regulation regEnum = parseEnumSafely(regulation, Regulation.class);
 		CardCondition condEnum = parseEnumSafely(condition, CardCondition.class);
+		ItemStatus statusEnum = parseEnumSafely(status, ItemStatus.class);
 
 		// 検索
+		// statusEnum が null のときは「全て（= SELLING + SOLD）」扱いにするのは Service 側
 		Page<Item> items = itemService.searchByCardFilters(
-				cardName, rarityEnum, regEnum, condEnum, packName,
-				minPrice, maxPrice, sort, page, size);
+				cardName, rarityEnum, regEnum, condEnum,
+				packName, minPrice, maxPrice, sort,
+				statusEnum,
+				page, size);
 
 		// ★ item_list.html で enum/カテゴリを参照するので常に渡す
 		model.addAttribute("items", items);
