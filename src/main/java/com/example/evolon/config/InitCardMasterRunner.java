@@ -34,6 +34,60 @@ public class InitCardMasterRunner {
 					"テラスタルフェスex",
 					PrintedRegulation.H);
 
+			insertIfNotExists(
+					repo,
+					"sv8a",
+					"200/187",
+					"リーフィアex",
+					Rarity.SAR,
+					"テラスタルフェスex",
+					PrintedRegulation.H);
+
+			insertIfNotExists(
+					repo,
+					"sv8a",
+					"202/187",
+					"ブースターex",
+					Rarity.SAR,
+					"テラスタルフェスex",
+					PrintedRegulation.H);
+
+			insertIfNotExists(
+					repo,
+					"sv8a",
+					"205/187",
+					"シャワーズex",
+					Rarity.SAR,
+					"テラスタルフェスex",
+					PrintedRegulation.H);
+
+			insertIfNotExists(
+					repo,
+					"sv8a",
+					"209/187",
+					"サンダースex",
+					Rarity.SAR,
+					"テラスタルフェスex",
+					PrintedRegulation.H);
+
+			insertIfNotExists(
+					repo,
+					"sv8a",
+					"211/187",
+					"エーフィex",
+					Rarity.SAR,
+					"テラスタルフェスex",
+					PrintedRegulation.H);
+
+			insertIfNotExists(
+					repo,
+					"sv8a",
+					"217/187",
+					"ブラッキーex",
+					Rarity.SAR,
+					"テラスタルフェスex",
+					PrintedRegulation.H);
+
 			System.out.println("✅ card_master 初期データ確認完了");
 		};
 	}
