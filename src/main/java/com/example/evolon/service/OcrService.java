@@ -115,16 +115,9 @@ public class OcrService {
 			log.warn("❌ カード番号抽出失敗: 空文字");
 			return ParsedCardNumber.invalid();
 		}
-		String cleaned = text
-				// Hsv8a / Isv8a / Jsv8a → sv8a
-				.replaceAll("(?i)\\b[HIJ](sv|m)", "$1")
-				// 従来の単独 H/I/J 行削除
-				.replaceAll("(?m)^\\s*[HIJ]\\s+", "")
-				// OCR対策
-				.replaceAll("\\s+", " ");
 
 		// 先頭の H/I/J を単語単位で削除（必要なら複数行対応）
-		//String cleaned = text.replaceAll("(?m)^\\s*[HIJ]\\s+", "");
+		String cleaned = text.replaceAll("(?m)^\\s*[HIJ]\\s+", "");
 
 		// sv/m で始まるセットコードを全体から検索
 		Pattern setCodePattern = Pattern.compile("\\b(sv|m)[a-z0-9]{1,4}\\b", Pattern.CASE_INSENSITIVE);
