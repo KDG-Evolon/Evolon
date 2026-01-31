@@ -40,3 +40,4 @@ src/main/resources/application.properties.example
 # GCP Service Account Keys
 gcp-keys/
 gcp-keys/*.json
+.DS_Store

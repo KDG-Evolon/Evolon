@@ -380,14 +380,44 @@ public class ItemController {
 	 * 出品編集フォーム表示 GET /items/{id}/edit
 	 * ========================================================= */
 	@GetMapping("/{id}/edit")
-	public String showEditItemForm(@PathVariable("id") Long id, Model model) {
+	public String showEditItemForm(
+			@PathVariable("id") Long id,
+			@AuthenticationPrincipal UserDetails userDetails,
+			Model model,
+			RedirectAttributes redirectAttributes) {
 
-		Optional<Item> item = itemService.getItemById(id);
-		if (item.isEmpty()) {
+		// ★ 商品の存在確認
+		Item existingItem = itemService.getItemById(id)
+				.orElse(null);
+
+		if (existingItem == null) {
 			return "redirect:/items";
 		}
 
-		model.addAttribute("item", item.get());
+		// ★ 未ログインなら編集フォーム表示させない（URL直打ち対策）
+		if (userDetails == null) {
+			redirectAttributes.addFlashAttribute("errorMessage", "ログインしてください。");
+			return "redirect:/login";
+		}
+
+		// ★ ログインユーザー取得
+		User currentUser = userService.getUserByEmail(userDetails.getUsername())
+				.orElseThrow(() -> new RuntimeException("User not found"));
+
+		// ★ 所有者以外は編集不可
+		if (existingItem.getSeller() == null || !existingItem.getSeller().getId().equals(currentUser.getId())) {
+			redirectAttributes.addFlashAttribute("errorMessage", "この商品は編集できません。");
+			return "redirect:/items/" + id;
+		}
+
+		// ★★★ 取引完了（SOLD）なら編集不可（サーバ側の最終防衛ライン） ★★★
+		if (existingItem.getStatus() == ItemStatus.SOLD) {
+			redirectAttributes.addFlashAttribute("errorMessage", "取引完了のため編集できません。");
+			return "redirect:/items/" + id;
+		}
+
+		// 編集フォームに必要なデータを渡す
+		model.addAttribute("item", existingItem);
 		model.addAttribute("categories", categoryService.getAllCategories());
 
 		// ★ 編集時も必要（発送）
@@ -451,6 +481,12 @@ public class ItemController {
 		if (existingItem.getSeller() == null || !existingItem.getSeller().getId().equals(currentUser.getId())) {
 			redirectAttributes.addFlashAttribute("errorMessage", "この商品は編集できません。");
 			return "redirect:/items";
+		}
+
+		// ★★★ 取引完了（SOLD）なら更新不可（URL直打ちのPOSTもブロック） ★★★
+		if (existingItem.getStatus() == ItemStatus.SOLD) {
+			redirectAttributes.addFlashAttribute("errorMessage", "取引完了のため編集できません。");
+			return "redirect:/items/{id}";
 		}
 
 		Category category = categoryService.getCategoryById(categoryId)
@@ -539,6 +575,12 @@ public class ItemController {
 		if (itemToDelete.getSeller() == null || !itemToDelete.getSeller().getId().equals(currentUser.getId())) {
 			redirectAttributes.addFlashAttribute("errorMessage", "この商品は削除できません。");
 			return "redirect:/items";
+		}
+
+		// ★★★ 取引完了（SOLD）なら削除不可（整合性維持） ★★★
+		if (itemToDelete.getStatus() == ItemStatus.SOLD) {
+			redirectAttributes.addFlashAttribute("errorMessage", "取引完了のため削除できません。");
+			return "redirect:/items/" + id;
 		}
 
 		itemService.deleteItem(id);
