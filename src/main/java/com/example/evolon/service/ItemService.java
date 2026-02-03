@@ -37,14 +37,17 @@ public class ItemService {
 	 * 商品一覧検索
 	 * SELLING + SOLD を表示する
 	 * ========================= */
-	public Page<Item> searchItems(String keyword, Long categoryId, int page, int size) {
+	public Page<Item> searchItems(String keyword, Long categoryId, ItemStatus status, int page, int size) {
 
 		Pageable pageable = PageRequest.of(page, size);
 
-		// ★ 表示対象ステータス（ここが重要）
-		List<ItemStatus> statuses = List.of(
-				ItemStatus.SELLING,
-				ItemStatus.SOLD);
+		// 表示対象ステータス
+		List<ItemStatus> statuses = (status == null)
+				? List.of(
+						ItemStatus.SELLING,
+						ItemStatus.PAYMENT_DONE,
+						ItemStatus.SOLD)
+				: List.of(status);
 
 		if (hasText(keyword) && categoryId != null) {
 			return itemRepository
@@ -88,9 +91,20 @@ public class ItemService {
 		Pageable pageable = PageRequest.of(page, size, ItemSortHelper.toSort(sort));
 
 		// ★ status が未指定なら「全て（SELLING + SOLD）」にする
-		List<ItemStatus> statuses = (status == null)
-				? List.of(ItemStatus.SELLING, ItemStatus.SOLD)
-				: List.of(status);
+		List<ItemStatus> statuses;
+
+		if (status == null) {
+			statuses = List.of(
+					ItemStatus.SELLING,
+					ItemStatus.PAYMENT_DONE,
+					ItemStatus.SOLD);
+		} else if (status == ItemStatus.SOLD) {
+			statuses = List.of(
+					ItemStatus.PAYMENT_DONE,
+					ItemStatus.SOLD);
+		} else {
+			statuses = List.of(status); // SELLING
+		}
 
 		return itemRepository.searchByCardFilters(
 				statuses, // ★Listで渡す（Repository 側は IN :statuses）

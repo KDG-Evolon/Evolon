@@ -126,13 +126,24 @@ public class ItemController {
 			@RequestParam(value = "categoryId", required = false) Long categoryId,
 			// ページ番号（0 始まり、デフォルト 0）
 			@RequestParam(value = "page", defaultValue = "0") int page,
+			// ステータス（SELLING / SOLD / null=全て）
+			@RequestParam(value = "status", required = false) String status,
 			// 1 ページ件数（デフォルト 10）
 			@RequestParam(value = "size", defaultValue = "10") int size,
 			// 画面へデータを渡すモデル
 			Model model) {
 
-		// 条件に応じて商品を検索（SELLING + SOLD を表示する想定）
-		Page<Item> items = itemService.searchItems(keyword, categoryId, page, size);
+		// enum 安全変換（null / 空 / 不正値は null）
+		ItemStatus statusEnum = parseEnumSafely(status, ItemStatus.class);
+
+		// enum 変換後に検索する
+		// statusEnum == null → Service 側で「全て（SELLING + SOLD）」扱い
+		Page<Item> items = itemService.searchItems(
+				keyword,
+				categoryId,
+				statusEnum,
+				page,
+				size);
 
 		// カテゴリ一覧を取得
 		List<Category> categories = categoryService.getAllCategories();
@@ -147,7 +158,6 @@ public class ItemController {
 		// カテゴリ一覧をテンプレートへ渡す
 		model.addAttribute("categories", categories);
 
-		// 一覧画面のテンプレート名を返す
 		return "pages/items/item_list";
 	}
 

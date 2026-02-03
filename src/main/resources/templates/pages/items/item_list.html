@@ -6,16 +6,22 @@
       showFooter=true
 )}">
 
+  <!-- ========================= -->
+  <!-- メインコンテンツ -->
+  <!-- ========================= -->
   <div th:fragment="content"
        xmlns:th="http://www.thymeleaf.org"
        xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
     <!-- ========================= -->
-    <!-- ツールバー：左=出品/マイページ 右=絞り込み -->
+    <!-- ツールバー -->
+    <!-- 左：商品出品 / 右：絞り込み検索 -->
     <!-- ========================= -->
     <div class="toolbar">
       <div class="toolbar-left">
-        <a th:href="@{/items/new}" class="button button--primary">商品を出品</a>
+        <a th:href="@{/items/new}" class="button button--primary">
+          商品を出品
+        </a>
       </div>
 
       <div class="toolbar-right">
@@ -26,16 +32,17 @@
     </div>
 
     <!-- ========================= -->
-    <!-- 現在の検索条件を表示 -->
+    <!-- 現在の検索条件表示 -->
     <!-- ========================= -->
     <div class="search-hint">
       <span th:if="${param.cardName != null and param.cardName[0] != ''}">
-        カード名: <b th:text="${param.cardName[0]}"></b>
+        カード名:
+        <b th:text="${param.cardName[0]}"></b>
       </span>
 
       <span th:if="${param.status != null and param.status[0] != ''}">
         ステータス:
-        <b th:text="${param.status[0] == 'SELLING' ? '出品中' : (param.status[0] == 'SOLD' ? '売り切れ' : param.status[0])}"></b>
+        <b th:text="${param.status[0] == 'SELLING' ? '出品中' : '売り切れ'}"></b>
       </span>
     </div>
 
@@ -43,22 +50,27 @@
     <!-- 検索モーダル -->
     <!-- ========================= -->
     <div class="modal-backdrop" id="searchModal" aria-hidden="true">
-      <div class="modal-card" role="dialog" aria-modal="true" aria-label="検索モーダル">
+      <div class="modal-card" role="dialog" aria-modal="true">
+
+        <!-- モーダルヘッダー -->
         <div class="modal-head">
           <h2 class="modal-title">絞り込み検索</h2>
-          <button type="button" class="modal-close" id="closeSearch" aria-label="閉じる">×</button>
+          <button type="button" class="modal-close" id="closeSearch">×</button>
         </div>
 
         <!-- ========================= -->
         <!-- 検索フォーム -->
+        <!-- ※ actionは /items/search に統一 -->
         <!-- ========================= -->
         <form th:action="@{/items/search}" method="get" class="filter-form modal-form">
 
+          <!-- カード名 -->
           <div>
             <label>カード名</label>
             <input type="text" name="cardName" th:value="${param.cardName}">
           </div>
 
+          <!-- レアリティ -->
           <div>
             <label>レアリティ</label>
             <select name="rarity">
@@ -71,6 +83,7 @@
             </select>
           </div>
 
+          <!-- レギュレーション -->
           <div>
             <label>レギュレーション</label>
             <select name="regulation">
@@ -83,11 +96,13 @@
             </select>
           </div>
 
+          <!-- 封入パック -->
           <div>
             <label>封入パック</label>
             <input type="text" name="packName" th:value="${param.packName}">
           </div>
 
+          <!-- 状態 -->
           <div>
             <label>状態</label>
             <select name="condition">
@@ -100,34 +115,49 @@
             </select>
           </div>
 
-          <!-- ★ ステータス絞り込み -->
+          <!-- ステータス -->
           <div>
             <label>ステータス</label>
             <select name="status">
-              <option value="" th:selected="${param.status == null or param.status[0] == ''}">全て</option>
-              <option value="SELLING" th:selected="${param.status != null and param.status[0] == 'SELLING'}">出品中</option>
-              <option value="SOLD" th:selected="${param.status != null and param.status[0] == 'SOLD'}">売り切れ</option>
+              <option value="">全て</option>
+              <option value="SELLING"
+                      th:selected="${param.status != null and param.status[0] == 'SELLING'}">
+                出品中
+              </option>
+              <option value="SOLD"
+                      th:selected="${param.status != null and param.status[0] == 'SOLD'}">
+                売り切れ
+              </option>
             </select>
           </div>
 
+          <!-- 価格 -->
           <div>
             <label>価格</label>
             <div class="range">
               <input type="number" name="minPrice" placeholder="最小" th:value="${param.minPrice}">
-              <span class="range-sep">〜</span>
+              <span>〜</span>
               <input type="number" name="maxPrice" placeholder="最大" th:value="${param.maxPrice}">
             </div>
           </div>
 
+          <!-- 並び替え -->
           <div>
             <label>並び替え</label>
             <select name="sort">
-              <option value="new" th:selected="${param.sort == null or param.sort[0] == 'new'}">新着順</option>
-              <option value="priceAsc" th:selected="${param.sort != null and param.sort[0] == 'priceAsc'}">価格昇順</option>
-              <option value="priceDesc" th:selected="${param.sort != null and param.sort[0] == 'priceDesc'}">価格降順</option>
+              <option value="new" th:selected="${param.sort == null or param.sort[0] == 'new'}">
+                新着順
+              </option>
+              <option value="priceAsc" th:selected="${param.sort != null and param.sort[0] == 'priceAsc'}">
+                価格昇順
+              </option>
+              <option value="priceDesc" th:selected="${param.sort != null and param.sort[0] == 'priceDesc'}">
+                価格降順
+              </option>
             </select>
           </div>
 
+          <!-- ボタン -->
           <div class="modal-actions">
             <a th:href="@{/items}" class="button secondary">リセット</a>
             <button type="submit" class="button">検索</button>
@@ -141,27 +171,24 @@
     <!-- ========================= -->
     <div class="item-grid">
 
-      <!-- 商品1件 -->
-      <div class="item-card"
-           th:each="item : ${items.content}"
-           th:classappend="' category-' + ${
-              item.category == null ? 'other' :
-              (item.category.name == 'カード' ? 'card' :
-              (item.category.name == 'サプライ' ? 'supply' :
-              (item.category.name == 'デッキ・構築済み' ? 'deck' : 'other')))
-           }">
-
+      <!-- 商品カード -->
+      <div class="item-card" th:each="item : ${items.content}">
         <a th:href="@{/items/{id}(id=${item.id})}">
 
-          <!-- カテゴリバッジ -->
+          <!-- カテゴリ -->
           <span class="type-badge"
                 th:text="${item.category != null ? item.category.name : 'その他'}">
-            カード
           </span>
 
-          <!-- 画像 -->
-          <img th:if="${item.imageUrl != null}" th:src="${item.imageUrl}" alt="商品画像">
-          <img th:if="${item.imageUrl == null}" th:src="@{/images/placeholder.png}" alt="商品画像">
+          <!-- 商品画像 -->
+          <!-- imageUrl があれば表示、なければプレースホルダー -->
+          <img th:if="${item.imageUrl != null}"
+               th:src="@{${item.imageUrl}}"
+               alt="商品画像">
+
+          <img th:if="${item.imageUrl == null}"
+               th:src="@{/images/placeholder.png}"
+               alt="商品画像">
 
           <!-- 商品名 -->
           <h3 th:text="${item.name}"></h3>
@@ -171,10 +198,9 @@
              th:text="'¥' + ${#numbers.formatDecimal(item.price,0,'COMMA',0,'POINT')}">
           </p>
 
-          <!-- ステータス表示 -->
+          <!-- ステータス -->
           <span class="status"
-                th:classappend="${item.status != null ? item.status.name().toLowerCase() : 'selling'}"
-                th:text="${item.status != null ? item.status.label : '出品中'}">
+                th:text="${item.status.name() == 'SELLING' ? '出品中' : '売り切れ'}">
           </span>
         </a>
       </div>
@@ -186,14 +212,17 @@
     </div>
 
     <!-- ========================= -->
-    <!-- ページネーション（検索条件保持） -->
+    <!-- ページネーション -->
+    <!-- ※ 検索条件を保持したまま /items/search -->
     <!-- ========================= -->
     <div class="pagination">
 
-      <a th:if="${items.hasPrevious()}" th:href="@{/items/search(
+      <!-- 前へ -->
+      <a th:if="${items.hasPrevious()}"
+         th:href="@{/items/search(
             page=${items.number - 1},
-            status=${param.status},
             cardName=${param.cardName},
+            status=${param.status},
             rarity=${param.rarity},
             regulation=${param.regulation},
             condition=${param.condition},
@@ -201,74 +230,53 @@
             minPrice=${param.minPrice},
             maxPrice=${param.maxPrice},
             sort=${param.sort}
-          )}">
+         )}">
         前へ
       </a>
 
+      <!-- ページ番号 -->
       <span th:each="i : ${#numbers.sequence(0, items.totalPages - 1)}">
-        <a th:if="${i != items.number}" th:href="@{/items/search(
-              page=${i},
-              status=${param.status},
-              cardName=${param.cardName},
-              rarity=${param.rarity},
-              regulation=${param.regulation},
-              condition=${param.condition},
-              packName=${param.packName},
-              minPrice=${param.minPrice},
-              maxPrice=${param.maxPrice},
-              sort=${param.sort}
-            )}" th:text="${i + 1}">
+        <a th:if="${i != items.number}"
+           th:href="@{/items/search(page=${i}, cardName=${param.cardName}, status=${param.status})}"
+           th:text="${i + 1}">
         </a>
-
         <span th:if="${i == items.number}" class="current-page" th:text="${i + 1}"></span>
       </span>
 
-      <a th:if="${items.hasNext()}" th:href="@{/items/search(
-            page=${items.number + 1},
-            status=${param.status},
-            cardName=${param.cardName},
-            rarity=${param.rarity},
-            regulation=${param.regulation},
-            condition=${param.condition},
-            packName=${param.packName},
-            minPrice=${param.minPrice},
-            maxPrice=${param.maxPrice},
-            sort=${param.sort}
-          )}">
+      <!-- 次へ -->
+      <a th:if="${items.hasNext()}"
+         th:href="@{/items/search(page=${items.number + 1}, cardName=${param.cardName}, status=${param.status})}">
         次へ
       </a>
     </div>
 
     <!-- ========================= -->
-    <!-- モーダル開閉JS -->
+    <!-- モーダル制御JS -->
     <!-- ========================= -->
     <script>
       const modal = document.getElementById('searchModal');
       const openBtn = document.getElementById('openSearch');
       const closeBtn = document.getElementById('closeSearch');
 
-      function openModal() {
+      openBtn.onclick = () => {
         modal.classList.add('is-open');
         modal.setAttribute('aria-hidden', 'false');
         document.body.classList.add('modal-lock');
-      }
+      };
 
-      function closeModal() {
+      closeBtn.onclick = () => {
         modal.classList.remove('is-open');
         modal.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('modal-lock');
-      }
+      };
 
-      openBtn.addEventListener('click', openModal);
-      closeBtn.addEventListener('click', closeModal);
+      modal.onclick = e => {
+        if (e.target === modal) closeBtn.onclick();
+      };
 
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
-      });
-
-      window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeModal();
-      });
+      window.onkeydown = e => {
+        if (e.key === 'Escape') closeBtn.onclick();
+      };
     </script>
 
   </div>
