@@ -1,3 +1,4 @@
+/*
 package com.example.evolon.config;
 
 import org.springframework.boot.CommandLineRunner;
@@ -64,3 +65,4 @@ public class InitCardMasterRunner {
 		System.out.println("➕ insert: " + setCode + " " + cardNumber);
 	}
 }
+*/

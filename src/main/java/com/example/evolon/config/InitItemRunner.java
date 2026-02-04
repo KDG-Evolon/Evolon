@@ -1,3 +1,4 @@
+/*
 package com.example.evolon.config;
 
 import java.math.BigDecimal;
@@ -98,3 +99,4 @@ public class InitItemRunner {
 			Rarity rarity) {
 	}
 }
+*/

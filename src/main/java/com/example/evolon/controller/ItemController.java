@@ -4,8 +4,6 @@ package com.example.evolon.controller;
 import java.io.IOException;
 // 金額を正確に扱うための BigDecimal の import
 import java.math.BigDecimal;
-// 一覧描画などで使うコレクションの import
-import java.util.List;
 // Optional で存在チェックを簡潔にするための import
 import java.util.Optional;
 
@@ -118,26 +116,38 @@ public class ItemController {
 	/* =========================================================
 	 * 商品一覧（通常一覧） GET /items
 	 * ========================================================= */
+	/* =========================================================
+	 * 商品一覧（通常一覧） GET /items
+	 * ・出品中 / 売り切れ 両方を表示可能
+	 * ・status 未指定時は「全て」
+	 * ========================================================= */
 	@GetMapping
 	public String listItems(
-			// 検索キーワード（任意）※この画面では主に商品名/カテゴリ向け
+			// 検索キーワード（商品名など、任意）
 			@RequestParam(value = "keyword", required = false) String keyword,
+
 			// カテゴリ ID（任意）
 			@RequestParam(value = "categoryId", required = false) Long categoryId,
-			// ページ番号（0 始まり、デフォルト 0）
-			@RequestParam(value = "page", defaultValue = "0") int page,
+
 			// ステータス（SELLING / SOLD / null=全て）
 			@RequestParam(value = "status", required = false) String status,
-			// 1 ページ件数（デフォルト 10）
+
+			// ページ番号（0 始まり）
+			@RequestParam(value = "page", defaultValue = "0") int page,
+
+			// 1ページあたりの件数
 			@RequestParam(value = "size", defaultValue = "10") int size,
-			// 画面へデータを渡すモデル
+
+			// 画面へデータを渡す Model
 			Model model) {
 
-		// enum 安全変換（null / 空 / 不正値は null）
+		// ===== ステータスを enum に安全変換 =====
+		// null / 空 / 不正値 → null（= 全て扱い）
 		ItemStatus statusEnum = parseEnumSafely(status, ItemStatus.class);
 
-		// enum 変換後に検索する
-		// statusEnum == null → Service 側で「全て（SELLING + SOLD）」扱い
+		// ===== 商品一覧検索 =====
+		// statusEnum == null の場合は
+		// Service 側で「SELLING + PAYMENT_DONE + SOLD」を返す
 		Page<Item> items = itemService.searchItems(
 				keyword,
 				categoryId,
@@ -145,19 +155,16 @@ public class ItemController {
 				page,
 				size);
 
-		// カテゴリ一覧を取得
-		List<Category> categories = categoryService.getAllCategories();
+		// ===== 画面表示用データを Model に詰める =====
+		model.addAttribute("items", items);
+		model.addAttribute("categories", categoryService.getAllCategories());
 
-		// ★ item_list.html が検索フォームで enum を参照するなら、通常一覧でも必ず渡す
+		// ★ item_list.html の検索フォームで使用する enum
 		model.addAttribute("rarities", Rarity.values());
 		model.addAttribute("regulations", Regulation.values());
 		model.addAttribute("conditions", CardCondition.values());
 
-		// 商品一覧をテンプレートへ渡す
-		model.addAttribute("items", items);
-		// カテゴリ一覧をテンプレートへ渡す
-		model.addAttribute("categories", categories);
-
+		// 商品一覧画面
 		return "pages/items/item_list";
 	}
 

@@ -1,3 +1,4 @@
+/*
 package com.example.evolon.config;
 
 import org.springframework.boot.CommandLineRunner;
@@ -65,3 +66,4 @@ public class InitAdminRunner {
 		users.save(u);
 	}
 }
+*/

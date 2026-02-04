@@ -17,19 +17,20 @@
     <!-- ツールバー -->
     <!-- 左：商品出品 / 右：絞り込み検索 -->
     <!-- ========================= -->
-    <div class="toolbar">
-      <div class="toolbar-left">
-        <a th:href="@{/items/new}" class="button button--primary">
-          商品を出品
-        </a>
-      </div>
+	<div class="toolbar">
+	  <div class="toolbar-left">
+	    <a th:href="@{/items/new}" class="button button--primary">
+	      商品を出品
+	    </a>
+	  </div>
 
-      <div class="toolbar-right">
-        <button type="button" class="button secondary" id="openSearch">
-          🔍 絞り込み検索
-        </button>
-      </div>
-    </div>
+	  <div class="toolbar-right">
+	    <button type="button" class="button secondary" id="openSearch">
+	      🔍 絞り込み検索
+	    </button>
+	  </div>
+	</div>
+
 
     <!-- ========================= -->
     <!-- 現在の検索条件表示 -->
@@ -116,20 +117,24 @@
           </div>
 
           <!-- ステータス -->
-          <div>
-            <label>ステータス</label>
-            <select name="status">
-              <option value="">全て</option>
-              <option value="SELLING"
-                      th:selected="${param.status != null and param.status[0] == 'SELLING'}">
-                出品中
-              </option>
-              <option value="SOLD"
-                      th:selected="${param.status != null and param.status[0] == 'SOLD'}">
-                売り切れ
-              </option>
-            </select>
-          </div>
+		  <div>
+		    <label>ステータス</label>
+		    <select name="status">
+		      <option value=""
+		        th:selected="${param.status == null or param.status[0] == ''}">
+		        全て
+		      </option>
+		      <option value="SELLING"
+		        th:selected="${param.status != null and param.status[0] == 'SELLING'}">
+		        出品中
+		      </option>
+		      <option value="SOLD"
+		        th:selected="${param.status != null and param.status[0] == 'SOLD'}">
+		        売り切れ
+		      </option>
+		    </select>
+		  </div>
+
 
           <!-- 価格 -->
           <div>
@@ -199,9 +204,12 @@
           </p>
 
           <!-- ステータス -->
-          <span class="status"
-                th:text="${item.status.name() == 'SELLING' ? '出品中' : '売り切れ'}">
-          </span>
+		  <span class="status"
+		        th:classappend="${item.status.name().toLowerCase()}"
+		        th:text="${item.status.label}">
+		  </span>
+
+
         </a>
       </div>
 
